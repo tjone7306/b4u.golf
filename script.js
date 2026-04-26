@@ -379,8 +379,7 @@ async function fetchNearbyCourses(lat, lon) {
     list.innerHTML = items.map(c => {
       const maps    = `https://www.google.com/maps/search/${encodeURIComponent(c.name)}/@${c.lat},${c.lon},15z`;
       const drive   = `https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}`;
-      // Search by course NAME — way more reliable than lat/lon (which GolfNow ignores)
-      const teeGoogle = `https://www.google.com/search?q=${encodeURIComponent(c.name + ' tee times book online')}`;
+      // GolfNow's searchTerm= is a real deep-link to their booking page, filtered to this course
       const teeGolfNow = `https://www.golfnow.com/tee-times/search?searchTerm=${encodeURIComponent(c.name)}`;
       const website = `https://www.google.com/search?q=${encodeURIComponent(c.name + ' golf course official website')}`;
       const par    = c.tags.par ? ` · Par ${c.tags.par}` : '';
@@ -391,9 +390,9 @@ async function fetchNearbyCourses(lat, lon) {
           <div class="meta">${c.dist.toFixed(1)} mi away${par}${access}</div>
         </div>
         <div class="course-actions">
+          <a href="${teeGolfNow}" target="_blank" rel="noopener" title="Open this course's GolfNow booking page">🕐 Tee times</a>
           <a href="${maps}" target="_blank" rel="noopener">📍 Map</a>
           <a href="${drive}" target="_blank" rel="noopener">🚗 Directions</a>
-          <a href="${teeGoogle}" target="_blank" rel="noopener" title="Search Google for tee times at this exact course">🕐 Tee times</a>
           <a href="${website}" target="_blank" rel="noopener" title="Find course website">🌐 Website</a>
         </div>
       </div>`;
@@ -449,15 +448,105 @@ async function initFlyover() {
     });
   });
 
-  // Pull weather → compute Readiness Score
+  // Pull weather → compute Readiness Score; pull nearby courses too
   try {
     const { lat, lon } = await getLocation();
     const place = await reverseGeocode(lat, lon);
     const data  = await fetchForecast(lat, lon);
     renderReadiness(data, place);
     renderFairwayTiles(data);
+    renderHomeForecast(data);
+    renderHomeCourses(lat, lon, place);
   } catch (e) {
     renderReadinessOffline();
+    const courseList = document.getElementById('home-courses-list');
+    if (courseList) {
+      courseList.innerHTML = `<div class="callout warn" style="color:var(--green-900);background:rgba(255,255,255,0.92)">📍 Allow location access to see courses near you. <a href="courses.html" style="color:var(--green-700);font-weight:700">Or search a city manually →</a></div>`;
+    }
+    const fcRows = document.getElementById('fairway-forecast-rows');
+    if (fcRows) fcRows.innerHTML = `<p class="muted" style="font-size:0.9rem">Allow location access to see forecast.</p>`;
+  }
+}
+
+/* ---- Home page: 5-day forecast strip ---- */
+function renderHomeForecast(data) {
+  const wrap = document.getElementById('fairway-forecast-rows');
+  if (!wrap) return;
+  const d = data.daily;
+  wrap.innerHTML = d.time.slice(0, 5).map((t, i) => {
+    const [lab, ic] = wxLabel(d.weather_code[i]);
+    return `
+      <div style="display:grid;grid-template-columns:60px auto 1fr auto;gap:0.75rem;align-items:center;padding:0.55rem 0;border-bottom:1px solid var(--gray-100);font-size:0.92rem">
+        <span style="font-weight:700;color:var(--green-900)">${i === 0 ? 'Today' : dayName(t)}</span>
+        <span style="font-size:1.4rem;line-height:1">${ic}</span>
+        <span class="muted">${lab} · 💧 ${d.precipitation_probability_max[i]||0}% · 🌬 ${Math.round(d.wind_speed_10m_max[i]||0)} mph</span>
+        <span style="font-weight:600;color:var(--green-900)">${Math.round(d.temperature_2m_max[i])}° / <span class="muted">${Math.round(d.temperature_2m_min[i])}°</span></span>
+      </div>`;
+  }).join('');
+}
+
+/* ---- Home page: live nearby courses (top 5) ---- */
+async function renderHomeCourses(lat, lon, place) {
+  const placeBox = document.getElementById('home-courses-place');
+  const list = document.getElementById('home-courses-list');
+  if (!list) return;
+
+  if (placeBox && place) {
+    placeBox.innerHTML = `📍 <strong>Showing courses near ${place}</strong> — closest five within 25 miles.`;
+  }
+
+  const query = `[out:json][timeout:20];
+    (node["leisure"="golf_course"](around:40000,${lat},${lon});
+     way["leisure"="golf_course"](around:40000,${lat},${lon});
+     relation["leisure"="golf_course"](around:40000,${lat},${lon}););
+    out center 30;`;
+  try {
+    const r = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'data=' + encodeURIComponent(query)
+    });
+    const j = await r.json();
+    if (!j.elements || !j.elements.length) {
+      list.innerHTML = `<div class="callout warn" style="color:var(--green-900);background:rgba(255,255,255,0.92)">No courses found in OpenStreetMap data within 25 miles. <a href="courses.html" style="color:var(--green-700);font-weight:700">Search Google Maps for golf courses →</a></div>`;
+      return;
+    }
+    const items = j.elements
+      .map(el => {
+        const t = el.tags || {};
+        const cLat = el.lat || (el.center && el.center.lat);
+        const cLon = el.lon || (el.center && el.center.lon);
+        if (!cLat || !cLon || !t.name) return null;
+        const dist = haversine(lat, lon, cLat, cLon);
+        return { name: t.name, lat: cLat, lon: cLon, dist, tags: t };
+      })
+      .filter(Boolean)
+      .sort((a,b) => a.dist - b.dist)
+      .slice(0, 5);
+
+    if (!items.length) {
+      list.innerHTML = `<p class="muted" style="color:rgba(255,255,255,0.7)">No named courses near you in OpenStreetMap. <a href="courses.html" style="color:white;font-weight:700">View map of nearby golf →</a></p>`;
+      return;
+    }
+
+    list.innerHTML = items.map(c => {
+      const teeGolfNow = `https://www.golfnow.com/tee-times/search?searchTerm=${encodeURIComponent(c.name)}`;
+      const maps    = `https://www.google.com/maps/search/${encodeURIComponent(c.name)}/@${c.lat},${c.lon},15z`;
+      const drive   = `https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}`;
+      return `<div style="background:rgba(255,255,255,0.95);border-radius:14px;padding:1rem 1.1rem;margin-bottom:0.6rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem 1rem">
+        <div>
+          <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;color:var(--green-900);margin-bottom:0.1rem">${c.name}</div>
+          <div style="font-size:0.85rem;color:var(--gray-500)">${c.dist.toFixed(1)} mi · ${(c.tags.access || 'public').replace(/^./, x => x.toUpperCase())}</div>
+        </div>
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+          <a href="${teeGolfNow}" target="_blank" rel="noopener" style="background:var(--green-700);color:white;padding:0.4rem 0.8rem;border-radius:999px;font-size:0.82rem;font-weight:600;text-decoration:none">🕐 Tee times</a>
+          <a href="${maps}" target="_blank" rel="noopener" style="background:var(--green-50);color:var(--green-700);padding:0.4rem 0.8rem;border-radius:999px;font-size:0.82rem;font-weight:600;text-decoration:none">📍 Map</a>
+          <a href="${drive}" target="_blank" rel="noopener" style="background:var(--green-50);color:var(--green-700);padding:0.4rem 0.8rem;border-radius:999px;font-size:0.82rem;font-weight:600;text-decoration:none">🚗 Go</a>
+        </div>
+      </div>`;
+    }).join('');
+  } catch {
+    list.innerHTML = `<p class="muted" style="color:rgba(255,255,255,0.7)">Live course list unavailable. <a href="courses.html" style="color:white;font-weight:700">Use the full course finder →</a></p>`;
   }
 }
 
