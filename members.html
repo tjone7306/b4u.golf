@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Membership — B4U.Golf</title>
+  <meta name="description" content="Free forever for the basics. Pro for $1.99/mo unlocks live GPS, scorecard sync, and live competitions." />
+  <meta name="theme-color" content="#1a4d2e" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%231a4d2e'/%3E%3Ctext x='50' y='66' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EB%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+    .pricing-card { background: white; border-radius: 18px; padding: 2rem; box-shadow: var(--shadow); border: 1px solid rgba(15, 53, 34, 0.08); position: relative; }
+    .pricing-card.featured { border-color: var(--green-500); box-shadow: var(--shadow-lg); transform: scale(1.02); }
+    .pricing-card .badge { position: absolute; top: -14px; right: 1.5rem; background: var(--green-700); color: white; padding: 0.3rem 0.9rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .price { font-size: 3rem; font-weight: 800; color: var(--green-900); line-height: 1; }
+    .price small { font-size: 1rem; color: var(--gray-500); font-weight: 500; }
+    .price-annual { color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem; }
+    .feature-list { list-style: none; padding: 0; margin: 1.25rem 0; }
+    .feature-list li { padding: 0.45rem 0; display: flex; align-items: flex-start; gap: 0.5rem; color: var(--gray-700); }
+    .feature-list li::before { content: "✓"; color: var(--green-500); font-weight: 700; flex-shrink: 0; }
+    .feature-list li.dim { color: var(--gray-300); }
+    .feature-list li.dim::before { content: "—"; color: var(--gray-300); }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav">
+    <a href="index.html" class="brand"><span class="brand-mark">B4U</span><span>b4u.golf</span></a>
+    <button class="nav-toggle" aria-label="Toggle navigation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg></button>
+    <ul class="nav-links">
+      <li><a href="weather.html">Weather</a></li>
+      <li><a href="courses.html">Courses</a></li>
+      <li><a href="checklist.html">Checklist</a></li>
+      <li><a href="etiquette.html">Etiquette</a></li>
+      <li><a href="equipment.html">Equipment</a></li>
+      <li><a href="tips.html">Tips</a></li>
+      <li><a href="scorecard.html">Scorecard</a></li>
+      <li><a href="members.html" class="btn btn-secondary" style="padding:0.45rem 1rem">Join Free</a></li>
+    </ul>
+  </div>
+</header>
+
+<section class="page-header">
+  <div class="container" style="text-align:center">
+    <span class="eyebrow">Membership</span>
+    <h1>Less than a sleeve of balls. <br>Forever.</h1>
+    <p class="lead" style="margin:0 auto;max-width:38rem">Free covers everything most golfers need before a round. Pro is for golfers who want live GPS, scorecard sync, stat tracking, and to run live competitions with their group — for less than $20 a year.</p>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="container">
+    <div class="pricing-grid">
+
+      <div class="pricing-card">
+        <h3>Free Forever</h3>
+        <div class="price">$0<small> / month</small></div>
+        <p class="muted" style="margin-top:0.5rem">Everything you need before you tee off.</p>
+        <ul class="feature-list">
+          <li>Live weather, built for golfers</li>
+          <li>Course finder near you (GPS)</li>
+          <li>Tee-time deep-links to GolfNow &amp; GolfPass</li>
+          <li>Pre-round checklist</li>
+          <li>Etiquette, pace, tipping guides</li>
+          <li>Equipment guide</li>
+          <li>Warm-up &amp; mental tips</li>
+          <li>Basic digital scorecard</li>
+          <li>No ads, ever</li>
+        </ul>
+        <a href="index.html" class="btn btn-secondary" style="width:100%;justify-content:center">You're already in</a>
+      </div>
+
+      <div class="pricing-card featured">
+        <span class="badge">Most popular</span>
+        <h3>Pro</h3>
+        <div class="price">$1.99<small> / month</small></div>
+        <div class="price-annual">or $14.99/yr — save 35%</div>
+        <p class="muted" style="margin-top:0.5rem">For golfers who play 5+ times a year and want more out of every round.</p>
+        <ul class="feature-list">
+          <li><strong>Everything in Free</strong></li>
+          <li>Live GPS yardages on the course</li>
+          <li>Smart scorecard with auto-sync</li>
+          <li>Stat tracking (fairways, GIR, putts, scrambles)</li>
+          <li>USGA-style handicap calculation</li>
+          <li><strong>Live competitions</strong> — skins, Nassau, match play, scrambles</li>
+          <li>Group rounds with shared room codes</li>
+          <li>Tee-time deal alerts in your area</li>
+          <li>Cloud round history</li>
+          <li>Priority customer support</li>
+        </ul>
+        <a href="#join" class="btn" style="width:100%;justify-content:center">Get Pro — $1.99/mo</a>
+        <p class="muted" style="font-size:0.8rem;margin-top:0.75rem;text-align:center">Cancel any time. 7-day free trial.</p>
+      </div>
+
+    </div>
+
+    <p class="muted" style="text-align:center;margin-top:2rem;font-size:0.9rem">
+      💳 Billing handled securely by Stripe. We never store your card details.
+    </p>
+  </div>
+</section>
+
+<section class="section" id="join">
+  <div class="container" style="max-width:560px">
+    <div class="card" style="padding:2rem">
+      <h2 style="margin-bottom:0.25rem">Get notified when Pro launches</h2>
+      <p class="muted">We're rolling out Pro with a small founding-member group first. Drop your email and we'll let you know — plus a founding-member discount.</p>
+      <form id="signup-form">
+        <div class="field">
+          <input type="email" name="email" placeholder="you@email.com" required />
+          <button class="btn" type="submit">Save my spot</button>
+        </div>
+        <p class="muted" style="font-size:0.8rem">No spam. We'll only email about the launch.</p>
+      </form>
+      <div id="signup-result"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:linear-gradient(180deg,var(--green-50),var(--cream))">
+  <div class="container">
+    <h2 style="text-align:center">Frequently asked</h2>
+    <div class="grid grid-2" style="margin-top:1.5rem;max-width:1000px;margin-left:auto;margin-right:auto">
+      <div class="card">
+        <h3>Why so cheap?</h3>
+        <p>Most golf apps charge $5/mo or $40+/yr. We think pre-round prep should be accessible to every golfer — not just the ones who already know what slope rating means. We also keep our infrastructure lean (no ads, no bloat) so $1.99 covers our costs and a fair margin.</p>
+      </div>
+      <div class="card">
+        <h3>Will the free tier ever change?</h3>
+        <p>No. The features in the Free Forever column above are guaranteed free for the life of your account. Pro is purely additional.</p>
+      </div>
+      <div class="card">
+        <h3>Can I install it like an app?</h3>
+        <p>Yes. b4u.golf is a Progressive Web App — on iPhone, tap Share → "Add to Home Screen". On Android, tap "Install app" in the Chrome menu. It works offline once installed, no App Store download needed.</p>
+      </div>
+      <div class="card">
+        <h3>How do live competitions work?</h3>
+        <p>One player creates a round and gets a 6-letter room code. Anyone in your group joins by entering the code on their phone. Scores update live for all players, with a real-time leaderboard. Skins, Nassau, match play, and scrambles supported.</p>
+      </div>
+      <div class="card">
+        <h3>Can I cancel any time?</h3>
+        <p>Yes. Cancel from your account page; you keep Pro access until the end of the billing period. No fees, no questions, no "are you sure" gauntlet.</p>
+      </div>
+      <div class="card">
+        <h3>Will there be a native iOS / Android app?</h3>
+        <p>Likely yes, in 2026. We're building the PWA first because it works on every phone today — when we ship to the App Store and Play Store, it'll be the same product, just wrapped natively.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div><div class="brand" style="color:white"><span class="brand-mark">B4U</span><span>b4u.golf</span></div><p style="color:rgba(255,255,255,0.7);margin-top:0.75rem">Everything you need <em>before</em> you tee off.</p></div>
+      <div><h4>Before the round</h4><ul><li><a href="weather.html">Weather</a></li><li><a href="courses.html">Courses</a></li><li><a href="checklist.html">Checklist</a></li><li><a href="equipment.html">Equipment</a></li></ul></div>
+      <div><h4>On the course</h4><ul><li><a href="etiquette.html">Etiquette</a></li><li><a href="tips.html">Tips</a></li><li><a href="scorecard.html">Scorecard</a></li></ul></div>
+      <div><h4>Account</h4><ul><li><a href="members.html">Membership</a></li><li><a href="about.html">About</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© <span data-year>2026</span> b4u.golf — also at b4ugolf.com</span><span>Built for the love of the game.</span></div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script>
+document.getElementById('signup-form').addEventListener('submit', function(ev) {
+  ev.preventDefault();
+  var email = ev.target.email.value;
+  var box = document.getElementById('signup-result');
+  // Placeholder — wire to Stripe / Mailchimp / Substack / Buttondown later
+  box.innerHTML = '<div class="callout" style="margin-top:1rem">✅ <strong>You\'re on the list!</strong> We\'ll email <strong>' + email + '</strong> when Pro launches with founding-member pricing.</div>';
+  ev.target.reset();
+});
+</script>
+</body>
+</html>
