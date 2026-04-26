@@ -6,17 +6,17 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f8f6f0",
-  "theme_color": "#1a4d2e",
+  "theme_color": "#0a2f1d",
   "scope": "/",
   "icons": [
     {
-      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%231a4d2e'/><text x='96' y='128' font-size='100' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>B4U</text></svg>",
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='%230a2f1d'/><text x='96' y='148' font-size='150' text-anchor='middle' fill='%23f5b941' font-family='Arial,sans-serif' font-weight='900'>4</text></svg>",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='86' fill='%231a4d2e'/><text x='256' y='340' font-size='260' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>B4U</text></svg>",
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230a2f1d'/><text x='256' y='400' font-size='400' text-anchor='middle' fill='%23f5b941' font-family='Arial,sans-serif' font-weight='900'>4</text></svg>",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
