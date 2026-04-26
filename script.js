@@ -161,9 +161,10 @@ async function initWeatherDetail() {
   const box = document.getElementById('wx-detail');
   const search = document.getElementById('wx-search');
   const input  = document.getElementById('wx-place');
+  const details = document.getElementById('wx-search-details');
 
   async function load(lat, lon, place) {
-    box.innerHTML = `<p class="muted">Loading forecast…</p>`;
+    box.innerHTML = `<p class="muted">Loading forecast for ${place}…</p>`;
     try {
       const data = await fetchForecast(lat, lon);
       renderWeatherDetail(box, data, place);
@@ -176,9 +177,11 @@ async function initWeatherDetail() {
   try {
     const { lat, lon } = await getLocation();
     const place = await reverseGeocode(lat, lon);
-    load(lat, lon, place || 'Your location');
+    load(lat, lon, place || 'your location');
   } catch {
-    box.innerHTML = `<p class="muted">Enter a city or zip code above to see the forecast.</p>`;
+    // Geolocation denied or failed → auto-expand the manual search form
+    box.innerHTML = `<div class="callout warn">📍 Location access was denied or unavailable. Enter a city or ZIP code below to look up a forecast.</div>`;
+    if (details) details.open = true;
   }
 
   if (search && input) {
@@ -259,40 +262,28 @@ async function initCourseFinder() {
   const placeBox = document.getElementById('cf-place');
   const form = document.getElementById('cf-form');
   const input = document.getElementById('cf-input');
+  const details = document.getElementById('cf-search-details');
 
   function render(lat, lon, label) {
     if (placeBox) placeBox.textContent = label || '';
     const mapsNear = `https://www.google.com/maps/search/golf+courses/@${lat},${lon},12z`;
     const mapsPublic = `https://www.google.com/maps/search/public+golf+courses/@${lat},${lon},12z`;
     const mapsDriving = `https://www.google.com/maps/search/driving+ranges/@${lat},${lon},12z`;
-    const golfNow = `https://www.golfnow.com/tee-times/search?Latitude=${lat}&Longitude=${lon}&Radius=25`;
-    const golfPass = `https://www.golfpass.com/tee-times?lat=${lat}&lng=${lon}`;
 
     box.innerHTML = `
-      <div class="grid grid-2">
-        <div class="card">
-          <div class="icon">📍</div>
-          <h3>Courses near you</h3>
-          <p>Open an interactive map of golf courses around your current location.</p>
-          <div class="course-actions" style="margin-top:0.5rem">
-            <a href="${mapsNear}" target="_blank" rel="noopener">All courses</a>
-            <a href="${mapsPublic}" target="_blank" rel="noopener">Public only</a>
-            <a href="${mapsDriving}" target="_blank" rel="noopener">Driving ranges</a>
-          </div>
-        </div>
-        <div class="card">
-          <div class="icon">🕐</div>
-          <h3>Book a tee time</h3>
-          <p>Search live tee-time inventory and rates at courses in your area.</p>
-          <div class="course-actions" style="margin-top:0.5rem">
-            <a href="${golfNow}" target="_blank" rel="noopener">GolfNow tee times</a>
-            <a href="${golfPass}" target="_blank" rel="noopener">GolfPass tee times</a>
-          </div>
+      <div class="card">
+        <div class="icon">📍</div>
+        <h3>Browse courses near you on a map</h3>
+        <p>Interactive Google Maps showing every golf facility around your current location.</p>
+        <div class="course-actions" style="margin-top:0.5rem">
+          <a href="${mapsNear}" target="_blank" rel="noopener">All courses</a>
+          <a href="${mapsPublic}" target="_blank" rel="noopener">Public only</a>
+          <a href="${mapsDriving}" target="_blank" rel="noopener">Driving ranges</a>
         </div>
       </div>
 
-      <h3 style="margin-top:2rem">Sample courses within ~25 miles</h3>
-      <p class="muted" style="font-size:0.9rem">Click any course to open it in Google Maps with directions and reviews.</p>
+      <h3 style="margin-top:2rem">Courses within ~25 miles of you</h3>
+      <p class="muted" style="font-size:0.9rem">Click <strong>"Tee times"</strong> on any course below to search booking sites for that <em>specific</em> course — no more landing on the wrong city's results.</p>
       <div class="course-list" id="cf-list"><p class="muted">Loading nearby courses…</p></div>
     `;
 
@@ -304,7 +295,8 @@ async function initCourseFinder() {
     const place = await reverseGeocode(lat, lon);
     render(lat, lon, place ? `Showing results near ${place}` : '');
   } catch {
-    box.innerHTML = `<p class="muted">Allow location access, or search a city/zip below.</p>`;
+    box.innerHTML = `<div class="callout warn">📍 Location access was denied or unavailable. Enter a city or ZIP code below to find courses.</div>`;
+    if (details) details.open = true;
   }
 
   if (form && input) {
@@ -362,9 +354,12 @@ async function fetchNearbyCourses(lat, lon) {
     }
 
     list.innerHTML = items.map(c => {
-      const maps   = `https://www.google.com/maps/search/${encodeURIComponent(c.name)}/@${c.lat},${c.lon},15z`;
-      const drive  = `https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}`;
-      const tee    = `https://www.golfnow.com/tee-times/search?Latitude=${c.lat}&Longitude=${c.lon}&Radius=5`;
+      const maps    = `https://www.google.com/maps/search/${encodeURIComponent(c.name)}/@${c.lat},${c.lon},15z`;
+      const drive   = `https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}`;
+      // Search by course NAME — way more reliable than lat/lon (which GolfNow ignores)
+      const teeGoogle = `https://www.google.com/search?q=${encodeURIComponent(c.name + ' tee times book online')}`;
+      const teeGolfNow = `https://www.golfnow.com/tee-times/search?searchTerm=${encodeURIComponent(c.name)}`;
+      const website = `https://www.google.com/search?q=${encodeURIComponent(c.name + ' golf course official website')}&btnI=1`;
       const par    = c.tags.par ? ` · Par ${c.tags.par}` : '';
       const access = c.tags.access ? ` · ${c.tags.access[0].toUpperCase()+c.tags.access.slice(1)}` : '';
       return `<div class="course-item">
@@ -373,9 +368,10 @@ async function fetchNearbyCourses(lat, lon) {
           <div class="meta">${c.dist.toFixed(1)} mi away${par}${access}</div>
         </div>
         <div class="course-actions">
-          <a href="${maps}" target="_blank" rel="noopener">View on map</a>
-          <a href="${drive}" target="_blank" rel="noopener">Directions</a>
-          <a href="${tee}" target="_blank" rel="noopener">Tee times</a>
+          <a href="${maps}" target="_blank" rel="noopener">📍 Map</a>
+          <a href="${drive}" target="_blank" rel="noopener">🚗 Directions</a>
+          <a href="${teeGoogle}" target="_blank" rel="noopener" title="Search Google for tee times at this exact course">🕐 Tee times</a>
+          <a href="${website}" target="_blank" rel="noopener" title="Find course website">🌐 Website</a>
         </div>
       </div>`;
     }).join('');
