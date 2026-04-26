@@ -6,7 +6,30 @@
 document.addEventListener('DOMContentLoaded', () => {
   // Register service worker for PWA install / offline support
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('sw.js').catch(() => { /* offline mode not critical */ });
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      // Periodically check for new versions
+      setInterval(() => reg.update().catch(()=>{}), 60_000);
+
+      // When a new SW takes over, reload the page so users see the latest code
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        location.reload();
+      });
+
+      // If there's already a waiting SW, activate it now
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        if (!newSW) return;
+        newSW.addEventListener('statechange', () => {
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            // New version available — activate it (will trigger controllerchange + reload above)
+            newSW.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+    }).catch(() => { /* offline mode not critical */ });
   }
 
   const toggle = document.querySelector('.nav-toggle');
@@ -359,7 +382,7 @@ async function fetchNearbyCourses(lat, lon) {
       // Search by course NAME — way more reliable than lat/lon (which GolfNow ignores)
       const teeGoogle = `https://www.google.com/search?q=${encodeURIComponent(c.name + ' tee times book online')}`;
       const teeGolfNow = `https://www.golfnow.com/tee-times/search?searchTerm=${encodeURIComponent(c.name)}`;
-      const website = `https://www.google.com/search?q=${encodeURIComponent(c.name + ' golf course official website')}&btnI=1`;
+      const website = `https://www.google.com/search?q=${encodeURIComponent(c.name + ' golf course official website')}`;
       const par    = c.tags.par ? ` · Par ${c.tags.par}` : '';
       const access = c.tags.access ? ` · ${c.tags.access[0].toUpperCase()+c.tags.access.slice(1)}` : '';
       return `<div class="course-item">
