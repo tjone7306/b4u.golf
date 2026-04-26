@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Scorecard &amp; Competitions — B4U.Golf</title>
+  <meta name="description" content="Score with your phone, share a room code with your group, and run live skins, Nassau, or match play with real-time leaderboards." />
+  <meta name="theme-color" content="#1a4d2e" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%231a4d2e'/%3E%3Ctext x='50' y='66' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EB%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .sc-actions { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.5rem 0; }
+    @media (max-width: 540px) { .sc-actions { grid-template-columns: 1fr; } }
+    .sc-card { background: white; border-radius: var(--radius); padding: 1.75rem; box-shadow: var(--shadow); }
+    .sc-card h3 { display:flex; align-items:center; gap:0.5rem; }
+    .sc-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-variant-numeric: tabular-nums; }
+    .sc-table th, .sc-table td { padding: 0.5rem 0.4rem; text-align:center; border-bottom: 1px solid var(--gray-100); font-size: 0.9rem; }
+    .sc-table th { background: var(--green-50); color: var(--green-900); font-weight: 700; }
+    .sc-table td.player { text-align:left; font-weight:600; color: var(--green-900); }
+    .sc-input { width: 38px; padding: 0.4rem; border: 1px solid var(--gray-300); border-radius: 6px; text-align: center; font-size: 0.95rem; }
+    .room-code { display:inline-block; background:var(--green-900); color:white; padding:0.4rem 0.9rem; border-radius:8px; font-family:'SF Mono','Menlo',monospace; font-size:1.1rem; letter-spacing: 0.15em; font-weight: 700; }
+    .leaderboard { display:grid; gap: 0.5rem; margin-top: 1rem; }
+    .lb-row { display:grid; grid-template-columns: 32px 1fr auto auto; gap:0.75rem; padding:0.6rem 0.9rem; background: var(--green-50); border-radius: 8px; align-items:center; }
+    .lb-row.you { background: var(--green-300); color: white; }
+    .lb-row .pos { font-weight:800; color: var(--green-900); }
+    .lb-row.you .pos { color: white; }
+    .game-tabs { display:flex; gap:0.5rem; flex-wrap:wrap; margin: 1rem 0; }
+    .game-tab { padding: 0.45rem 1rem; background: var(--gray-100); border-radius: 999px; font-size:0.85rem; cursor: pointer; border:0; }
+    .game-tab.active { background: var(--green-700); color: white; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav">
+    <a href="index.html" class="brand"><span class="brand-mark">B4U</span><span>b4u.golf</span></a>
+    <button class="nav-toggle" aria-label="Toggle navigation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg></button>
+    <ul class="nav-links">
+      <li><a href="weather.html">Weather</a></li>
+      <li><a href="courses.html">Courses</a></li>
+      <li><a href="checklist.html">Checklist</a></li>
+      <li><a href="etiquette.html">Etiquette</a></li>
+      <li><a href="equipment.html">Equipment</a></li>
+      <li><a href="tips.html">Tips</a></li>
+      <li><a href="scorecard.html">Scorecard</a></li>
+      <li><a href="members.html" class="btn btn-secondary" style="padding:0.45rem 1rem">Join Free</a></li>
+    </ul>
+  </div>
+</header>
+
+<section class="page-header">
+  <div class="container">
+    <span class="eyebrow">Live scorecard <span class="tag alt" style="margin-left:0.5rem">Pro feature · preview</span></span>
+    <h1>Score live with your group</h1>
+    <p class="lead">One person creates a round. Everyone joins with a 6-letter room code. Scores update in real time on every phone. Run skins, Nassau, match play, or a scramble — all from the first tee.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+
+    <div class="sc-actions">
+      <div class="sc-card">
+        <h3>🆕 Start a new round</h3>
+        <p class="muted">Create a room and share the code with your group.</p>
+        <form id="create-form" style="margin-top:1rem">
+          <div class="field" style="margin:0.5rem 0">
+            <input type="text" id="course-name" placeholder="Course name (e.g. Pebble Beach)" required />
+          </div>
+          <div class="field" style="margin:0.5rem 0">
+            <input type="text" id="player-name" placeholder="Your name" required />
+            <select id="game-type">
+              <option value="stroke">Stroke play</option>
+              <option value="skins">Skins</option>
+              <option value="nassau">Nassau</option>
+              <option value="match">Match play</option>
+              <option value="scramble">Scramble</option>
+            </select>
+          </div>
+          <button type="submit" class="btn" style="width:100%;justify-content:center;margin-top:0.5rem">Create round</button>
+        </form>
+      </div>
+
+      <div class="sc-card">
+        <h3>🔗 Join an existing round</h3>
+        <p class="muted">Got a 6-letter code from your group? Hop in.</p>
+        <form id="join-form" style="margin-top:1rem">
+          <div class="field" style="margin:0.5rem 0">
+            <input type="text" id="join-code" placeholder="ROOM CODE" maxlength="6" style="text-transform:uppercase;letter-spacing:0.2em;text-align:center;font-weight:700" required />
+          </div>
+          <div class="field" style="margin:0.5rem 0">
+            <input type="text" id="join-name" placeholder="Your name" required />
+          </div>
+          <button type="submit" class="btn btn-secondary" style="width:100%;justify-content:center;margin-top:0.5rem">Join round</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Active round preview (demo data) -->
+    <div class="sc-card" id="round-active" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+        <div>
+          <div class="muted" style="font-size:0.85rem">Round in progress</div>
+          <h2 id="round-course" style="margin:0">Pebble Beach</h2>
+          <div class="muted" style="font-size:0.9rem">Stroke play · 4 players</div>
+        </div>
+        <div style="text-align:right">
+          <div class="muted" style="font-size:0.85rem">Room code</div>
+          <span class="room-code" id="round-code">B4U7GO</span>
+          <div class="muted" style="font-size:0.8rem;margin-top:0.3rem">Tap to copy</div>
+        </div>
+      </div>
+
+      <div class="game-tabs">
+        <button class="game-tab active" data-game="stroke">Stroke</button>
+        <button class="game-tab" data-game="skins">Skins</button>
+        <button class="game-tab" data-game="nassau">Nassau</button>
+        <button class="game-tab" data-game="match">Match</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="sc-table">
+          <thead>
+            <tr>
+              <th style="text-align:left">Player</th>
+              <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+              <th style="background:var(--green-700);color:white">Out</th>
+              <th>Tot</th>
+              <th>vs Par</th>
+            </tr>
+          </thead>
+          <tbody id="sc-rows">
+            <!-- filled by script -->
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:2rem">🏆 Live leaderboard</h3>
+      <div class="leaderboard" id="leaderboard"></div>
+
+      <p class="muted" style="text-align:center;margin-top:1.5rem;font-size:0.85rem">
+        Backend coming Q3 2026 — this is a UI preview running on local data. <a href="members.html">Join the launch list</a> for early access.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" style="background:linear-gradient(180deg,var(--green-50),var(--cream))">
+  <div class="container">
+    <h2>Game formats explained</h2>
+    <p class="lead" style="max-width:46rem">Not sure what to play? Here are the most common formats and how they work.</p>
+
+    <div class="grid grid-2" style="margin-top:1.5rem">
+      <div class="card">
+        <h3>🎯 Stroke play</h3>
+        <p>Count every stroke. Lowest total wins. The default — what tournaments use. Best for: any group size, any skill mix (with handicaps).</p>
+      </div>
+      <div class="card">
+        <h3>💰 Skins</h3>
+        <p>Each hole is worth a "skin" (a dollar, a beer, whatever). Lowest score on the hole wins it. Tie = skin carries to the next hole. Big payouts when 3+ holes carry. Great with 3–4 players.</p>
+      </div>
+      <div class="card">
+        <h3>📊 Nassau</h3>
+        <p>Three bets in one: front 9, back 9, and overall 18. Each is its own match. Often played with auto-doubles ("presses") when someone falls 2 down. Classic 4-ball format.</p>
+      </div>
+      <div class="card">
+        <h3>⚔️ Match play</h3>
+        <p>Hole-by-hole, not stroke total. Win the hole = +1, lose = -1, tie = halve. The match ends when one side is up by more holes than there are left. Best 1-on-1 or 2-on-2 format.</p>
+      </div>
+      <div class="card">
+        <h3>👥 Scramble</h3>
+        <p>Everyone tees off. Pick the best ball. Everyone hits from there. Repeat until in the hole. Friendly format — beginners love it because their bad shots don't count.</p>
+      </div>
+      <div class="card">
+        <h3>🎲 Wolf</h3>
+        <p>4-player rotating "wolf" picks a partner each hole — or goes alone for double points. Strategy + scoring + trash talk. The most fun social format if you have a regular group.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div><div class="brand" style="color:white"><span class="brand-mark">B4U</span><span>b4u.golf</span></div><p style="color:rgba(255,255,255,0.7);margin-top:0.75rem">Everything you need <em>before</em> you tee off.</p></div>
+      <div><h4>Before the round</h4><ul><li><a href="weather.html">Weather</a></li><li><a href="courses.html">Courses</a></li><li><a href="checklist.html">Checklist</a></li><li><a href="equipment.html">Equipment</a></li></ul></div>
+      <div><h4>On the course</h4><ul><li><a href="etiquette.html">Etiquette</a></li><li><a href="tips.html">Tips</a></li><li><a href="scorecard.html">Scorecard</a></li></ul></div>
+      <div><h4>Account</h4><ul><li><a href="members.html">Membership</a></li><li><a href="about.html">About</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© <span data-year>2026</span> b4u.golf — also at b4ugolf.com</span><span>Built for the love of the game.</span></div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script>
+/* Local-only demo: no backend yet. Real version will use Supabase realtime. */
+const PARS = [4,5,3,4,4,3,5,4,4]; // front 9 example
+const demoPlayers = [
+  { name: 'You',   scores: [4,5,3,5,4,3,5,5,4] },
+  { name: 'Mike',  scores: [5,5,4,4,5,3,6,4,5] },
+  { name: 'Sarah', scores: [4,4,3,5,4,4,5,4,4] },
+  { name: 'Dave',  scores: [6,6,4,5,5,4,5,5,5] }
+];
+
+function genCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = '';
+  for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+
+function showRound(course, code) {
+  document.getElementById('round-course').textContent = course || 'Demo Round';
+  document.getElementById('round-code').textContent = code;
+  const tbody = document.getElementById('sc-rows');
+  tbody.innerHTML = demoPlayers.map((p, idx) => {
+    const cells = p.scores.map(s => `<td>${s}</td>`).join('');
+    const out = p.scores.reduce((a,b)=>a+b,0);
+    const par = PARS.reduce((a,b)=>a+b,0);
+    const diff = out - par;
+    const sign = diff > 0 ? `+${diff}` : (diff === 0 ? 'E' : diff);
+    return `<tr><td class="player">${p.name}${idx===0?' (You)':''}</td>${cells}<td style="background:var(--green-50);font-weight:700">${out}</td><td style="font-weight:700">${out}</td><td>${sign}</td></tr>`;
+  }).join('');
+
+  // leaderboard
+  const lb = demoPlayers.map((p, idx) => {
+    const total = p.scores.reduce((a,b)=>a+b,0);
+    const par = PARS.reduce((a,b)=>a+b,0);
+    return { name: p.name, total, diff: total-par, you: idx===0 };
+  }).sort((a,b) => a.total - b.total);
+  document.getElementById('leaderboard').innerHTML = lb.map((r, i) => `
+    <div class="lb-row ${r.you?'you':''}">
+      <span class="pos">${i+1}</span>
+      <span style="font-weight:600">${r.name}${r.you?' (You)':''}</span>
+      <span>${r.total}</span>
+      <span class="muted">${r.diff > 0 ? '+'+r.diff : r.diff===0?'E':r.diff}</span>
+    </div>`).join('');
+
+  document.getElementById('round-active').style.display = 'block';
+  setTimeout(() => document.getElementById('round-active').scrollIntoView({behavior:'smooth'}), 100);
+}
+
+document.getElementById('create-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const course = document.getElementById('course-name').value;
+  showRound(course, genCode());
+});
+document.getElementById('join-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const code = document.getElementById('join-code').value.toUpperCase();
+  showRound('Demo Round', code);
+});
+document.querySelectorAll('.game-tab').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.game-tab').forEach(t => t.classList.remove('active'));
+    b.classList.add('active');
+  });
+});
+document.getElementById('round-code').addEventListener('click', e => {
+  navigator.clipboard?.writeText(e.target.textContent);
+  e.target.style.background = 'var(--green-300)';
+  setTimeout(() => e.target.style.background = '', 600);
+});
+</script>
+</body>
+</html>
