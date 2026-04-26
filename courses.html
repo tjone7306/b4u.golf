@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find a Golf Course Near You — B4U.Golf</title>
+  <meta name="description" content="GPS course finder. Discover public and private golf courses near your location, get directions, and book live tee times." />
+  <meta name="theme-color" content="#1a4d2e" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%231a4d2e'/%3E%3Ctext x='50' y='66' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EB%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav">
+    <a href="index.html" class="brand"><span class="brand-mark">B4U</span><span>b4u.golf</span></a>
+    <button class="nav-toggle" aria-label="Toggle navigation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg></button>
+    <ul class="nav-links">
+      <li><a href="weather.html">Weather</a></li>
+      <li><a href="courses.html">Courses</a></li>
+      <li><a href="checklist.html">Checklist</a></li>
+      <li><a href="etiquette.html">Etiquette</a></li>
+      <li><a href="equipment.html">Equipment</a></li>
+      <li><a href="tips.html">Tips</a></li>
+      <li><a href="scorecard.html">Scorecard</a></li>
+      <li><a href="members.html" class="btn btn-secondary" style="padding:0.45rem 1rem">Join Free</a></li>
+    </ul>
+  </div>
+</header>
+
+<section class="page-header">
+  <div class="container">
+    <span class="eyebrow">Course finder</span>
+    <h1>Courses near you, with live tee times</h1>
+    <p class="lead">We use your location (with your permission) to find golf courses within ~25 miles, give you directions, and link straight to live tee-time inventory.</p>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="container">
+    <form id="cf-form" class="field" style="max-width:520px">
+      <input id="cf-input" type="text" placeholder="City, ZIP, or course name" />
+      <button type="submit" class="btn">Search</button>
+    </form>
+    <p id="cf-place" class="muted" style="font-size:0.95rem"></p>
+    <div id="course-finder">
+      <p class="muted">📍 Loading nearby courses… (allow location access for the fastest results.)</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>Booking tee times: what to know</h2>
+    <p class="lead" style="max-width:46rem">If you've never booked a round before, here's the playbook.</p>
+
+    <div class="grid grid-2" style="margin-top:1.5rem">
+      <div class="card">
+        <div class="icon">📅</div>
+        <h3>How far in advance to book</h3>
+        <ul class="checklist">
+          <li><strong>Weekend tee times:</strong> book 7–14 days out for popular courses.</li>
+          <li><strong>Weekday rounds:</strong> 1–3 days out is usually fine.</li>
+          <li><strong>Twilight rates</strong> (~3 hrs before sunset): cheaper, can often walk on.</li>
+          <li><strong>Tournament season</strong> (spring/summer): plan 2–3 weeks ahead.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="icon">💵</div>
+        <h3>Reading the price</h3>
+        <ul class="checklist">
+          <li><strong>Greens fee:</strong> the cost to play the course.</li>
+          <li><strong>Cart fee:</strong> sometimes included, sometimes $15–25 extra.</li>
+          <li><strong>Replay rate:</strong> discounted second round same day.</li>
+          <li><strong>Resident rate:</strong> if it's a municipal course in your county/city.</li>
+          <li><strong>Twilight / super-twilight:</strong> 30–60% off afternoon rates.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="icon">🏌️</div>
+        <h3>What "tee time" actually means</h3>
+        <p>Your tee time is when your group <em>starts</em> hole 1. Plan to arrive 30–45 minutes early to check in, change shoes, hit the range, and warm up on the practice green.</p>
+        <p class="muted" style="font-size:0.9rem">Most courses send your group off in 8–10 minute intervals. Showing up at your tee time means you're already late.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📋</div>
+        <h3>Public vs. private vs. resort</h3>
+        <ul class="checklist">
+          <li><strong>Public / municipal:</strong> open to anyone. Budget-friendly, may be busier.</li>
+          <li><strong>Semi-private:</strong> members get priority but public can book limited times.</li>
+          <li><strong>Private / club:</strong> members and their guests only. Need an invite.</li>
+          <li><strong>Resort:</strong> open to anyone but priced higher; often pristine conditioning.</li>
+          <li><strong>Daily fee:</strong> a high-end public course (think Bethpage Black).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:linear-gradient(180deg,var(--green-50),var(--cream))">
+  <div class="container">
+    <h2>Reading a scorecard</h2>
+    <p class="lead" style="max-width:46rem">Every course publishes a scorecard. Here's what the numbers mean before you tee off.</p>
+
+    <div class="table-wrap" style="margin-top:1.5rem">
+      <table class="gtable">
+        <thead>
+          <tr><th>Term</th><th>What it means</th><th>Why it matters</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Par</strong></td><td>Expected strokes for a scratch golfer (3, 4, or 5)</td><td>Sets your target — par is a great score for most.</td></tr>
+          <tr><td><strong>Yardage</strong></td><td>Distance from each tee to the center of the green</td><td>Helps you pick a club and visualize the hole.</td></tr>
+          <tr><td><strong>Tees</strong> (black/blue/white/red/gold)</td><td>Different starting positions by skill/distance</td><td>Pick the tee where total yardage matches your driver carry × 28–32.</td></tr>
+          <tr><td><strong>Course rating</strong></td><td>Difficulty for a scratch (0-handicap) golfer</td><td>72.4 = harder than par; 69.2 = easier than par.</td></tr>
+          <tr><td><strong>Slope</strong></td><td>Difficulty for a bogey (~18-handicap) golfer (55–155, avg 113)</td><td>Higher slope = bigger gap between scratch and average. Used for handicap.</td></tr>
+          <tr><td><strong>Handicap (HCP)</strong> on the card</td><td>Hole's difficulty rank (1 = hardest, 18 = easiest)</td><td>Where strokes "pop" in match play.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info" style="margin-top:1.5rem">
+      <strong>Picking the right tees:</strong> if you're new to golf, play the forward-most tees. Total yardage 5,000–5,800 yds is great for high-handicappers; 6,000–6,400 for mid; 6,500+ for low. Walking up to the tee box of a course you can't physically reach is the #1 cause of slow play.
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>What to ask the pro shop when you arrive</h2>
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="icon">❓</div>
+        <h3>Course conditions today</h3>
+        <ul class="checklist">
+          <li>Are carts on the path only, or fairway?</li>
+          <li>Has the course been aerated recently? (Greens roll bumpy for ~2 weeks.)</li>
+          <li>Any hole closures or temporary greens?</li>
+          <li>Where's the GPS / sprinkler-head yardage marker?</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="icon">📜</div>
+        <h3>Local rules</h3>
+        <ul class="checklist">
+          <li>Out of bounds — internal stakes vs. property line.</li>
+          <li>Lateral hazards / penalty drop areas.</li>
+          <li>Lift, clean &amp; place ("preferred lies") if it's been wet.</li>
+          <li>Pace-of-play expectations (most courses post: 4 hrs 15 min).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div><div class="brand" style="color:white"><span class="brand-mark">B4U</span><span>b4u.golf</span></div><p style="color:rgba(255,255,255,0.7);margin-top:0.75rem">Everything you need <em>before</em> you tee off.</p></div>
+      <div><h4>Before the round</h4><ul><li><a href="weather.html">Weather</a></li><li><a href="courses.html">Courses</a></li><li><a href="checklist.html">Checklist</a></li><li><a href="equipment.html">Equipment</a></li></ul></div>
+      <div><h4>On the course</h4><ul><li><a href="etiquette.html">Etiquette</a></li><li><a href="tips.html">Tips</a></li><li><a href="scorecard.html">Scorecard</a></li></ul></div>
+      <div><h4>Account</h4><ul><li><a href="members.html">Membership</a></li><li><a href="about.html">About</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© <span data-year>2026</span> b4u.golf — also at b4ugolf.com</span><span>Built for the love of the game.</span></div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
