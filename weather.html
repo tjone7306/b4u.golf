@@ -39,13 +39,17 @@
 
 <section class="section-tight">
   <div class="container">
-    <form id="wx-search" class="field" style="max-width:520px">
-      <input id="wx-place" type="text" placeholder="City or ZIP — e.g. Phoenix, AZ or 30309" />
-      <button type="submit" class="btn">Look up</button>
-    </form>
     <div id="wx-detail">
-      <p class="muted">📍 Loading your local conditions… (allow location access for an instant read.)</p>
+      <p class="muted">📍 Detecting your location for live golf conditions…</p>
     </div>
+
+    <details id="wx-search-details" style="margin-top:1.5rem">
+      <summary style="cursor:pointer;color:var(--green-700);font-weight:600;font-size:0.95rem">📍 Use a different location instead</summary>
+      <form id="wx-search" class="field" style="max-width:520px;margin-top:0.75rem">
+        <input id="wx-place" type="text" placeholder="City or ZIP — e.g. Phoenix, AZ or 30309" />
+        <button type="submit" class="btn">Look up</button>
+      </form>
+    </details>
   </div>
 </section>
 
