@@ -1,0 +1,599 @@
+/* =========================================================
+   B4U.GOLF — shared front-end behavior
+   ========================================================= */
+
+/* ---- Mobile nav toggle ---- */
+document.addEventListener('DOMContentLoaded', () => {
+  // Register service worker for PWA install / offline support
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(() => { /* offline mode not critical */ });
+  }
+
+  const toggle = document.querySelector('.nav-toggle');
+  const links  = document.querySelector('.nav-links');
+  if (toggle && links) {
+    toggle.addEventListener('click', () => links.classList.toggle('open'));
+  }
+
+  // Mark active nav link based on current page
+  const path = location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    const href = a.getAttribute('href');
+    if (href === path) a.classList.add('active');
+  });
+
+  // Set current year in footer
+  document.querySelectorAll('[data-year]').forEach(el => {
+    el.textContent = new Date().getFullYear();
+  });
+
+  // Auto-init weather widget if a target exists
+  if (document.getElementById('home-weather')) initHomeWeather();
+  if (document.getElementById('wx-detail'))    initWeatherDetail();
+  if (document.getElementById('course-finder'))initCourseFinder();
+
+  // Course flyover home page
+  if (document.getElementById('flyover')) initFlyover();
+});
+
+/* ---- Geolocation helper (returns Promise) ---- */
+function getLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('Geolocation not supported'));
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      err => reject(err),
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }
+    );
+  });
+}
+
+/* ---- Reverse-geocode to a friendly place name (Open-Meteo, no key) ---- */
+async function reverseGeocode(lat, lon) {
+  try {
+    const url = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&count=1&language=en&format=json`;
+    const r = await fetch(url);
+    const d = await r.json();
+    const p = d.results && d.results[0];
+    if (!p) return null;
+    return [p.name, p.admin1].filter(Boolean).join(', ');
+  } catch { return null; }
+}
+
+/* ---- Open-Meteo current + daily forecast (no key required) ---- */
+async function fetchForecast(lat, lon) {
+  const params = new URLSearchParams({
+    latitude: lat, longitude: lon,
+    current: 'temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,weather_code,uv_index',
+    daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset',
+    temperature_unit: 'fahrenheit',
+    wind_speed_unit: 'mph',
+    precipitation_unit: 'inch',
+    timezone: 'auto',
+    forecast_days: 5
+  });
+  const r = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+  if (!r.ok) throw new Error('Weather fetch failed');
+  return r.json();
+}
+
+const WX_CODES = {
+  0:  ['Clear', '☀️'],
+  1:  ['Mostly clear', '🌤️'],
+  2:  ['Partly cloudy', '⛅'],
+  3:  ['Overcast', '☁️'],
+  45: ['Fog', '🌫️'],
+  48: ['Freezing fog', '🌫️'],
+  51: ['Light drizzle', '🌦️'],
+  53: ['Drizzle', '🌦️'],
+  55: ['Heavy drizzle', '🌧️'],
+  61: ['Light rain', '🌦️'],
+  63: ['Rain', '🌧️'],
+  65: ['Heavy rain', '🌧️'],
+  71: ['Light snow', '🌨️'],
+  73: ['Snow', '❄️'],
+  75: ['Heavy snow', '❄️'],
+  80: ['Showers', '🌦️'],
+  81: ['Heavy showers', '🌧️'],
+  82: ['Violent showers', '⛈️'],
+  95: ['Thunderstorm', '⛈️'],
+  96: ['T-storm w/ hail', '⛈️'],
+  99: ['Severe T-storm', '⛈️']
+};
+function wxLabel(code) { return WX_CODES[code] || ['—', '🌤️']; }
+
+function dayName(iso) {
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short' });
+}
+function fmtTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+function compass(deg) {
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+
+/* ---- Home page weather widget ---- */
+async function initHomeWeather() {
+  const box = document.getElementById('home-weather');
+  box.innerHTML = `<p class="muted">📍 Getting your location for live conditions…</p>`;
+  try {
+    const { lat, lon } = await getLocation();
+    const place = await reverseGeocode(lat, lon);
+    const data  = await fetchForecast(lat, lon);
+    renderHomeWeather(box, data, place);
+  } catch (e) {
+    box.innerHTML = `
+      <p class="muted">Couldn't grab your location automatically.</p>
+      <p class="muted" style="font-size:0.9rem">Tip: allow location access, or visit the
+        <a href="weather.html">Weather &amp; Conditions</a> page to look up a city.</p>`;
+  }
+}
+
+function renderHomeWeather(box, data, place) {
+  const c = data.current; const d = data.daily;
+  const [label, icon] = wxLabel(c.weather_code);
+  box.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+      <div>
+        <div class="tag">Right now</div>
+        <h3 style="margin:0.4rem 0 0.1rem">${place || 'Your location'}</h3>
+        <div class="muted" style="font-size:0.9rem">${label}</div>
+      </div>
+      <div style="font-size:3rem;line-height:1">${icon}</div>
+    </div>
+    <div class="wx-row">
+      <div class="wx-stat"><div class="label">Temp</div><div class="value">${Math.round(c.temperature_2m)}<span class="unit">°F</span></div></div>
+      <div class="wx-stat"><div class="label">Wind</div><div class="value">${Math.round(c.wind_speed_10m)}<span class="unit">mph ${compass(c.wind_direction_10m)}</span></div></div>
+      <div class="wx-stat"><div class="label">UV</div><div class="value">${Math.round(c.uv_index || 0)}</div></div>
+    </div>
+    <div class="muted" style="font-size:0.85rem">
+      🌅 Sunrise ${fmtTime(d.sunrise[0])} &nbsp;·&nbsp; 🌇 Sunset ${fmtTime(d.sunset[0])}
+    </div>
+    <div style="margin-top:1rem"><a href="weather.html" class="btn btn-secondary">Full forecast →</a></div>
+  `;
+}
+
+/* ---- Full weather page ---- */
+async function initWeatherDetail() {
+  const box = document.getElementById('wx-detail');
+  const search = document.getElementById('wx-search');
+  const input  = document.getElementById('wx-place');
+
+  async function load(lat, lon, place) {
+    box.innerHTML = `<p class="muted">Loading forecast…</p>`;
+    try {
+      const data = await fetchForecast(lat, lon);
+      renderWeatherDetail(box, data, place);
+    } catch (e) {
+      box.innerHTML = `<p class="muted">Could not load weather. Try again in a moment.</p>`;
+    }
+  }
+
+  // Auto-load via geolocation
+  try {
+    const { lat, lon } = await getLocation();
+    const place = await reverseGeocode(lat, lon);
+    load(lat, lon, place || 'Your location');
+  } catch {
+    box.innerHTML = `<p class="muted">Enter a city or zip code above to see the forecast.</p>`;
+  }
+
+  if (search && input) {
+    search.addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const q = input.value.trim();
+      if (!q) return;
+      box.innerHTML = `<p class="muted">Looking up “${q}”…</p>`;
+      try {
+        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&language=en&format=json`;
+        const r = await fetch(url); const j = await r.json();
+        const p = j.results && j.results[0];
+        if (!p) { box.innerHTML = `<p class="muted">Couldn't find “${q}”.</p>`; return; }
+        load(p.latitude, p.longitude, [p.name, p.admin1].filter(Boolean).join(', '));
+      } catch {
+        box.innerHTML = `<p class="muted">Search failed. Try again.</p>`;
+      }
+    });
+  }
+}
+
+function renderWeatherDetail(box, data, place) {
+  const c = data.current; const d = data.daily;
+  const [label, icon] = wxLabel(c.weather_code);
+
+  // Golf-specific guidance
+  let advice = [];
+  if (c.wind_speed_10m >= 20) advice.push('🌬️ <strong>Strong wind</strong> — club up downwind, take an extra club into the wind, and play knock-down shots.');
+  else if (c.wind_speed_10m >= 12) advice.push('🌬️ <strong>Breezy</strong> — wind will affect ball flight, especially on irons over 150 yards.');
+  if ((c.uv_index || 0) >= 7) advice.push('☀️ <strong>High UV</strong> — sunscreen SPF 30+, hat, and UV sunglasses are a must.');
+  if (c.temperature_2m <= 50) advice.push('🧤 <strong>Chilly</strong> — ball flies shorter; wear layers and consider a hand warmer.');
+  if (c.temperature_2m >= 88) advice.push('🥵 <strong>Hot</strong> — drink ~6–8 oz water every 2–3 holes; consider cooling towel.');
+  if (d.precipitation_probability_max[0] >= 50) advice.push('☔ <strong>Rain likely</strong> — pack rain gloves, towel, and waterproof jacket.');
+  if ([95,96,99].includes(c.weather_code)) advice.push('⚡ <strong>Thunderstorm risk</strong> — if you hear thunder, get off the course immediately.');
+
+  box.innerHTML = `
+    <div class="card" style="margin-bottom:1.25rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+        <div>
+          <div class="tag">Now in</div>
+          <h2 style="margin:0.25rem 0">${place}</h2>
+          <div class="muted">${label} · feels like ${Math.round(c.apparent_temperature)}°F</div>
+        </div>
+        <div style="font-size:4rem;line-height:1">${icon}</div>
+      </div>
+      <div class="wx-row" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr));margin-top:1rem">
+        <div class="wx-stat"><div class="label">Temp</div><div class="value">${Math.round(c.temperature_2m)}<span class="unit">°F</span></div></div>
+        <div class="wx-stat"><div class="label">Wind</div><div class="value">${Math.round(c.wind_speed_10m)}<span class="unit">mph</span></div><div class="muted" style="font-size:0.75rem">${compass(c.wind_direction_10m)} · gust ${Math.round(c.wind_gusts_10m||0)}</div></div>
+        <div class="wx-stat"><div class="label">Humidity</div><div class="value">${Math.round(c.relative_humidity_2m)}<span class="unit">%</span></div></div>
+        <div class="wx-stat"><div class="label">UV Index</div><div class="value">${Math.round(c.uv_index||0)}</div></div>
+        <div class="wx-stat"><div class="label">Sunrise</div><div class="value" style="font-size:1.05rem">${fmtTime(d.sunrise[0])}</div></div>
+        <div class="wx-stat"><div class="label">Sunset</div><div class="value" style="font-size:1.05rem">${fmtTime(d.sunset[0])}</div></div>
+      </div>
+      ${advice.length ? `<div class="callout info" style="margin-top:1rem"><strong>On-course tips:</strong><ul style="margin:0.5rem 0 0;padding-left:1.2rem">${advice.map(a => `<li>${a}</li>`).join('')}</ul></div>` : ''}
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:0.5rem">5-day outlook</h3>
+      ${d.time.map((t, i) => {
+        const [lab, ic] = wxLabel(d.weather_code[i]);
+        return `<div class="forecast-day">
+          <div class="day-name">${i === 0 ? 'Today' : dayName(t)}</div>
+          <div class="day-icon">${ic}</div>
+          <div>
+            <div>${lab}</div>
+            <div class="muted" style="font-size:0.85rem">💧 ${d.precipitation_probability_max[i]||0}% · 🌬️ ${Math.round(d.wind_speed_10m_max[i]||0)} mph · UV ${Math.round(d.uv_index_max[i]||0)}</div>
+          </div>
+          <div class="temps">${Math.round(d.temperature_2m_max[i])}° <span class="lo">/ ${Math.round(d.temperature_2m_min[i])}°</span></div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+/* ---- Course finder (geolocation → Google Maps + GolfNow links) ---- */
+async function initCourseFinder() {
+  const box = document.getElementById('course-finder');
+  const placeBox = document.getElementById('cf-place');
+  const form = document.getElementById('cf-form');
+  const input = document.getElementById('cf-input');
+
+  function render(lat, lon, label) {
+    if (placeBox) placeBox.textContent = label || '';
+    const mapsNear = `https://www.google.com/maps/search/golf+courses/@${lat},${lon},12z`;
+    const mapsPublic = `https://www.google.com/maps/search/public+golf+courses/@${lat},${lon},12z`;
+    const mapsDriving = `https://www.google.com/maps/search/driving+ranges/@${lat},${lon},12z`;
+    const golfNow = `https://www.golfnow.com/tee-times/search?Latitude=${lat}&Longitude=${lon}&Radius=25`;
+    const golfPass = `https://www.golfpass.com/tee-times?lat=${lat}&lng=${lon}`;
+
+    box.innerHTML = `
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="icon">📍</div>
+          <h3>Courses near you</h3>
+          <p>Open an interactive map of golf courses around your current location.</p>
+          <div class="course-actions" style="margin-top:0.5rem">
+            <a href="${mapsNear}" target="_blank" rel="noopener">All courses</a>
+            <a href="${mapsPublic}" target="_blank" rel="noopener">Public only</a>
+            <a href="${mapsDriving}" target="_blank" rel="noopener">Driving ranges</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="icon">🕐</div>
+          <h3>Book a tee time</h3>
+          <p>Search live tee-time inventory and rates at courses in your area.</p>
+          <div class="course-actions" style="margin-top:0.5rem">
+            <a href="${golfNow}" target="_blank" rel="noopener">GolfNow tee times</a>
+            <a href="${golfPass}" target="_blank" rel="noopener">GolfPass tee times</a>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:2rem">Sample courses within ~25 miles</h3>
+      <p class="muted" style="font-size:0.9rem">Click any course to open it in Google Maps with directions and reviews.</p>
+      <div class="course-list" id="cf-list"><p class="muted">Loading nearby courses…</p></div>
+    `;
+
+    fetchNearbyCourses(lat, lon);
+  }
+
+  try {
+    const { lat, lon } = await getLocation();
+    const place = await reverseGeocode(lat, lon);
+    render(lat, lon, place ? `Showing results near ${place}` : '');
+  } catch {
+    box.innerHTML = `<p class="muted">Allow location access, or search a city/zip below.</p>`;
+  }
+
+  if (form && input) {
+    form.addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const q = input.value.trim(); if (!q) return;
+      box.innerHTML = `<p class="muted">Looking up “${q}”…</p>`;
+      try {
+        const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&language=en&format=json`);
+        const j = await r.json();
+        const p = j.results && j.results[0];
+        if (!p) { box.innerHTML = `<p class="muted">Couldn't find “${q}”.</p>`; return; }
+        render(p.latitude, p.longitude, `Showing results near ${[p.name,p.admin1].filter(Boolean).join(', ')}`);
+      } catch { box.innerHTML = `<p class="muted">Search failed. Try again.</p>`; }
+    });
+  }
+}
+
+/* ---- Pull nearby courses from OpenStreetMap (Overpass API, no key) ---- */
+async function fetchNearbyCourses(lat, lon) {
+  const list = document.getElementById('cf-list');
+  if (!list) return;
+  const query = `[out:json][timeout:20];
+    (node["leisure"="golf_course"](around:40000,${lat},${lon});
+     way["leisure"="golf_course"](around:40000,${lat},${lon});
+     relation["leisure"="golf_course"](around:40000,${lat},${lon}););
+    out center 30;`;
+  try {
+    const r = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'data=' + encodeURIComponent(query)
+    });
+    const j = await r.json();
+    if (!j.elements || !j.elements.length) {
+      list.innerHTML = `<p class="muted">No courses found in OpenStreetMap data within 25 miles. Try the Google Maps links above for the most complete list.</p>`;
+      return;
+    }
+    const items = j.elements
+      .map(el => {
+        const t = el.tags || {};
+        const cLat = el.lat || (el.center && el.center.lat);
+        const cLon = el.lon || (el.center && el.center.lon);
+        if (!cLat || !cLon || !t.name) return null;
+        const dist = haversine(lat, lon, cLat, cLon);
+        return { name: t.name, lat: cLat, lon: cLon, dist, tags: t };
+      })
+      .filter(Boolean)
+      .sort((a,b) => a.dist - b.dist)
+      .slice(0, 15);
+
+    if (!items.length) {
+      list.innerHTML = `<p class="muted">No named courses returned. Try the Google Maps links above.</p>`;
+      return;
+    }
+
+    list.innerHTML = items.map(c => {
+      const maps   = `https://www.google.com/maps/search/${encodeURIComponent(c.name)}/@${c.lat},${c.lon},15z`;
+      const drive  = `https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}`;
+      const tee    = `https://www.golfnow.com/tee-times/search?Latitude=${c.lat}&Longitude=${c.lon}&Radius=5`;
+      const par    = c.tags.par ? ` · Par ${c.tags.par}` : '';
+      const access = c.tags.access ? ` · ${c.tags.access[0].toUpperCase()+c.tags.access.slice(1)}` : '';
+      return `<div class="course-item">
+        <div>
+          <h3>${c.name}</h3>
+          <div class="meta">${c.dist.toFixed(1)} mi away${par}${access}</div>
+        </div>
+        <div class="course-actions">
+          <a href="${maps}" target="_blank" rel="noopener">View on map</a>
+          <a href="${drive}" target="_blank" rel="noopener">Directions</a>
+          <a href="${tee}" target="_blank" rel="noopener">Tee times</a>
+        </div>
+      </div>`;
+    }).join('');
+  } catch {
+    list.innerHTML = `<p class="muted">Live course list is unavailable right now. Use the Google Maps and GolfNow links above.</p>`;
+  }
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 3958.8; // miles
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+/* =========================================================================
+   COURSE FLYOVER HOME PAGE — "play the hole" experience
+   - Computes Round Readiness Score from live weather
+   - Animates ball traveling down the fairway as you scroll
+   - Updates yardage track on the right edge
+   ========================================================================= */
+
+async function initFlyover() {
+  // Ball-follows-scroll
+  const ball = document.getElementById('flyover-ball');
+  const flyover = document.getElementById('flyover');
+  if (ball && flyover) {
+    const ticker = () => {
+      const rect = flyover.getBoundingClientRect();
+      const total = rect.height - window.innerHeight;
+      const passed = Math.min(Math.max(-rect.top, 0), total);
+      const pct = total > 0 ? passed / total : 0;
+      // Ball travels from y=0 to y=flyover height
+      ball.style.transform = `translate(-50%, ${rect.height * pct - 9}px)`;
+      // Highlight the active yardage tick
+      const ticks = document.querySelectorAll('.yardage-tick');
+      const activeIdx = Math.min(ticks.length - 1, Math.floor(pct * ticks.length + 0.05));
+      ticks.forEach((t, i) => t.classList.toggle('active', i === activeIdx));
+    };
+    window.addEventListener('scroll', ticker, { passive: true });
+    window.addEventListener('resize', ticker);
+    ticker();
+  }
+
+  // Yardage track click-to-jump
+  document.querySelectorAll('.yardage-tick').forEach(tick => {
+    tick.addEventListener('click', () => {
+      const target = document.querySelector(tick.dataset.target);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  // Pull weather → compute Readiness Score
+  try {
+    const { lat, lon } = await getLocation();
+    const place = await reverseGeocode(lat, lon);
+    const data  = await fetchForecast(lat, lon);
+    renderReadiness(data, place);
+    renderFairwayTiles(data);
+  } catch (e) {
+    renderReadinessOffline();
+  }
+}
+
+/* ---- ROUND READINESS SCORE ----
+   0–100. Combines four factors out of 25 each:
+     - Weather quality (wind, precip, lightning)
+     - Comfort (temperature)
+     - Daylight (will you finish before dark)
+     - Conditions (UV / humidity proxy + dew/frost risk) */
+
+function computeReadiness(data) {
+  const c = data.current;
+  const d = data.daily;
+  let weather = 25, comfort = 25, daylight = 25, conditions = 25;
+  const notes = [];
+
+  // ---- Weather (wind, precipitation, storms) ----
+  if ([95,96,99].includes(c.weather_code)) { weather -= 25; notes.push('⚡ thunderstorm risk'); }
+  else if (c.weather_code === 82) { weather -= 18; notes.push('violent rain showers'); }
+  else if ([65,73,75].includes(c.weather_code)) { weather -= 14; notes.push('heavy precipitation'); }
+  else if ([61,63,80,81,53,55].includes(c.weather_code)) { weather -= 8; notes.push('rain'); }
+  else if ([45,48,51].includes(c.weather_code)) { weather -= 4; notes.push('light precip / fog'); }
+  // Wind
+  if (c.wind_speed_10m >= 25) { weather -= 12; notes.push(`${Math.round(c.wind_speed_10m)} mph wind`); }
+  else if (c.wind_speed_10m >= 18) { weather -= 7; notes.push(`${Math.round(c.wind_speed_10m)} mph wind`); }
+  else if (c.wind_speed_10m >= 12) { weather -= 3; }
+  // Precipitation probability for the day
+  if (d.precipitation_probability_max[0] >= 70) { weather -= 6; notes.push('rain likely today'); }
+  else if (d.precipitation_probability_max[0] >= 40) { weather -= 3; }
+  weather = Math.max(0, weather);
+
+  // ---- Comfort (temperature) ----
+  const t = c.temperature_2m;
+  if (t < 32) { comfort -= 22; notes.push('freezing'); }
+  else if (t < 45) { comfort -= 12; notes.push('cold'); }
+  else if (t < 55) { comfort -= 5; }
+  else if (t > 95) { comfort -= 16; notes.push('extreme heat'); }
+  else if (t > 88) { comfort -= 8; notes.push('hot'); }
+  else if (t >= 60 && t <= 80) { /* sweet spot, no penalty */ }
+  comfort = Math.max(0, comfort);
+
+  // ---- Daylight (can you start a round and finish before sunset?) ----
+  const now = new Date();
+  const sunset = new Date(d.sunset[0]);
+  const minutesLeft = (sunset - now) / 60000;
+  if (minutesLeft >= 270) { /* full 18 + buffer */ }
+  else if (minutesLeft >= 200) { daylight -= 4; }
+  else if (minutesLeft >= 135) { daylight -= 12; notes.push('only 9 holes today'); }
+  else if (minutesLeft >= 60)  { daylight -= 18; notes.push('twilight only'); }
+  else { daylight -= 25; notes.push('not enough daylight'); }
+  daylight = Math.max(0, daylight);
+
+  // ---- Conditions (UV, frost risk, dew) ----
+  const uv = c.uv_index || 0;
+  if (uv >= 9) { conditions -= 5; notes.push('extreme UV'); }
+  else if (uv >= 7) { conditions -= 2; }
+  // Frost risk: low temp near freezing during morning
+  const dailyMin = d.temperature_2m_min[0];
+  if (dailyMin <= 33) { conditions -= 6; notes.push('frost delay risk'); }
+  else if (dailyMin <= 38) { conditions -= 3; notes.push('heavy dew expected'); }
+  // Humidity heavy
+  if (c.relative_humidity_2m >= 85) { conditions -= 3; }
+  conditions = Math.max(0, conditions);
+
+  const total = Math.round(weather + comfort + daylight + conditions);
+  return { total, weather: Math.round(weather), comfort: Math.round(comfort), daylight: Math.round(daylight), conditions: Math.round(conditions), notes };
+}
+
+function readinessVerdict(score) {
+  if (score >= 85) return { tone: '#6cbb74', emoji: '🟢', label: 'Send it.', text: 'Conditions are excellent. Go play your round.' };
+  if (score >= 70) return { tone: '#a8d99c', emoji: '🟢', label: 'Solid day for golf.', text: 'A few things to manage, but conditions are good.' };
+  if (score >= 55) return { tone: '#f5b941', emoji: '🟡', label: 'Workable.', text: 'Manage what the day throws at you and you\'ll be fine.' };
+  if (score >= 35) return { tone: '#ee7752', emoji: '🟠', label: 'Tough day to score.', text: 'Conditions will fight you. Consider reshuffling, or adjust expectations.' };
+  return { tone: '#d63d3d', emoji: '🔴', label: 'Probably reschedule.', text: 'The day is stacked against you. Move it if you can.' };
+}
+
+function renderReadiness(data, place) {
+  const r = computeReadiness(data);
+  const v = readinessVerdict(r.total);
+  const ring = document.getElementById('score-ring');
+  if (!ring) return;
+
+  // Animate ring fill
+  const circumference = 2 * Math.PI * 80; // r=80
+  const fillEl = ring.querySelector('.fill');
+  fillEl.style.stroke = v.tone;
+  fillEl.style.strokeDasharray = `${(r.total/100) * circumference} ${circumference}`;
+
+  document.getElementById('score-num').textContent = r.total;
+  document.getElementById('score-place').textContent = place || 'your area';
+
+  // Sub-scores
+  const rows = [
+    ['Weather',    r.weather,    25],
+    ['Comfort',    r.comfort,    25],
+    ['Daylight',   r.daylight,   25],
+    ['Conditions', r.conditions, 25]
+  ];
+  document.getElementById('score-rows').innerHTML = rows.map(([label, val, max]) => `
+    <div class="score-row">
+      <span class="row-label">${label}</span>
+      <span class="bar"><span style="transform:scaleX(${val/max})"></span></span>
+      <span class="pts">${val}/${max}</span>
+    </div>
+  `).join('');
+
+  // Verdict line
+  document.getElementById('score-verdict').innerHTML = `
+    <span class="verdict-emoji">${v.emoji}</span>
+    <span><strong style="color:white">${v.label}</strong> ${v.text}</span>
+  `;
+}
+
+function renderReadinessOffline() {
+  const ring = document.getElementById('score-ring');
+  if (!ring) return;
+  document.getElementById('score-num').textContent = '—';
+  document.getElementById('score-place').textContent = 'your area';
+  document.getElementById('score-rows').innerHTML = `
+    <p style="color:rgba(255,255,255,0.75);font-size:0.9rem">📍 Allow location access to compute your live Round Readiness Score from real weather data — wind, precipitation, daylight, and course-condition risk all rolled up into one number.</p>`;
+  document.getElementById('score-verdict').innerHTML = '';
+}
+
+/* ---- Fairway tiles (weather mini-grid below score) ---- */
+function renderFairwayTiles(data) {
+  const wrap = document.getElementById('fairway-tiles');
+  if (!wrap) return;
+  const c = data.current;
+  const d = data.daily;
+  const [label, icon] = wxLabel(c.weather_code);
+  const tempNote = c.temperature_2m < 50 ? 'ball flies short' : c.temperature_2m > 85 ? 'ball flies long' : 'normal yardages';
+  const windNote = c.wind_speed_10m >= 18 ? 'club up into wind' : c.wind_speed_10m >= 10 ? 'wind affects iron play' : 'minimal wind effect';
+  const uvNote = (c.uv_index||0) >= 7 ? 'sunscreen + hat critical' : (c.uv_index||0) >= 4 ? 'sunscreen recommended' : 'low UV';
+  const rainNote = d.precipitation_probability_max[0] >= 50 ? 'pack rain gear' : d.precipitation_probability_max[0] >= 25 ? 'small chance of rain' : 'dry round expected';
+
+  wrap.innerHTML = `
+    <div class="weather-tile">
+      <div class="t-label">Right now · ${icon}</div>
+      <div class="t-value">${Math.round(c.temperature_2m)}<span class="t-unit">°F</span></div>
+      <div class="t-note">${tempNote}</div>
+    </div>
+    <div class="weather-tile">
+      <div class="t-label">Wind · ${compass(c.wind_direction_10m)}</div>
+      <div class="t-value">${Math.round(c.wind_speed_10m)}<span class="t-unit">mph</span></div>
+      <div class="t-note">${windNote}</div>
+    </div>
+    <div class="weather-tile">
+      <div class="t-label">UV index</div>
+      <div class="t-value">${Math.round(c.uv_index || 0)}</div>
+      <div class="t-note">${uvNote}</div>
+    </div>
+    <div class="weather-tile">
+      <div class="t-label">Rain today</div>
+      <div class="t-value">${d.precipitation_probability_max[0]||0}<span class="t-unit">%</span></div>
+      <div class="t-note">${rainNote}</div>
+    </div>
+  `;
+}
