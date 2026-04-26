@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather &amp; Conditions for Golfers — B4U.Golf</title>
+  <meta name="description" content="Live weather built for golfers: wind speed and direction, dew/frost risk, lightning alerts, UV, sunrise/sunset — and what every metric means for your shots." />
+  <meta name="theme-color" content="#1a4d2e" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%231a4d2e'/%3E%3Ctext x='50' y='66' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EB%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav">
+    <a href="index.html" class="brand"><span class="brand-mark">B4U</span><span>b4u.golf</span></a>
+    <button class="nav-toggle" aria-label="Toggle navigation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg></button>
+    <ul class="nav-links">
+      <li><a href="weather.html">Weather</a></li>
+      <li><a href="courses.html">Courses</a></li>
+      <li><a href="checklist.html">Checklist</a></li>
+      <li><a href="etiquette.html">Etiquette</a></li>
+      <li><a href="equipment.html">Equipment</a></li>
+      <li><a href="tips.html">Tips</a></li>
+      <li><a href="scorecard.html">Scorecard</a></li>
+      <li><a href="members.html" class="btn btn-secondary" style="padding:0.45rem 1rem">Join Free</a></li>
+    </ul>
+  </div>
+</header>
+
+<section class="page-header">
+  <div class="container">
+    <span class="eyebrow">Before you go</span>
+    <h1>Weather &amp; conditions, built for golfers</h1>
+    <p class="lead">Wind, dew, lightning, UV, and daylight — the metrics that actually change how you play. Pulled live from your location, with on-course advice for every condition.</p>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="container">
+    <form id="wx-search" class="field" style="max-width:520px">
+      <input id="wx-place" type="text" placeholder="City or ZIP — e.g. Phoenix, AZ or 30309" />
+      <button type="submit" class="btn">Look up</button>
+    </form>
+    <div id="wx-detail">
+      <p class="muted">📍 Loading your local conditions… (allow location access for an instant read.)</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>What each metric means for your round</h2>
+    <p class="lead" style="max-width:46rem">If you're new to checking weather for golf, these are the numbers that matter — and how to play smart when they shift.</p>
+
+    <div class="grid grid-2" style="margin-top:1.5rem">
+      <div class="card">
+        <div class="icon">🌬️</div>
+        <h3>Wind speed &amp; direction</h3>
+        <p>The single most underrated factor. A 10 mph headwind costs ~10–15 yards on a 7-iron. Crosswinds turn straight shots into pull-hooks or slices.</p>
+        <ul class="checklist">
+          <li><strong>0–8 mph:</strong> Play your normal shot.</li>
+          <li><strong>9–15 mph:</strong> Take one extra club into the wind, one less downwind.</li>
+          <li><strong>16–25 mph:</strong> Two clubs more into wind, swing easier ("when it's breezy, swing easy"), aim for low shots.</li>
+          <li><strong>25+ mph:</strong> Tough day — keep ball low, putt from off the green when possible.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="icon">⚡</div>
+        <h3>Lightning &amp; storms</h3>
+        <p>The one rule that matters: <strong>if you hear thunder, get off the course immediately.</strong> Lightning can strike from a storm 10+ miles away.</p>
+        <ul class="checklist">
+          <li>Most courses sound a horn — stop play, head to the clubhouse or a designated shelter.</li>
+          <li>Don't shelter under trees or in open carts.</li>
+          <li>Wait 30 minutes after the last thunder before resuming.</li>
+          <li>Most courses will issue a rain check — ask the pro shop.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="icon">☀️</div>
+        <h3>UV index &amp; heat</h3>
+        <p>You're outside for 4+ hours with no shade. Sunburn and dehydration ruin rounds — and skin.</p>
+        <ul class="checklist">
+          <li>UV 6+: SPF 30+ at the first tee, reapply at the turn.</li>
+          <li>Wear a hat, polarized UV sunglasses, and a long-sleeve sun shirt if 8+.</li>
+          <li>Heat 85°F+: drink 6–8 oz water every 2–3 holes; consider an electrolyte tab.</li>
+          <li>Heat 95°F+: cooling towel, ice in your hat, walk slow between shots.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="icon">💧</div>
+        <h3>Dew, frost &amp; rain</h3>
+        <p>Early morning rounds often have <em>frost delays</em> — courses won't let carts on frozen turf because it damages the grass. Dew slows fairways and adds spin.</p>
+        <ul class="checklist">
+          <li><strong>Frost</strong> (temps near 32°F at sunrise): expect a 30–90 min delay. Call the pro shop.</li>
+          <li><strong>Heavy dew:</strong> ball won't roll out — club up on approach shots.</li>
+          <li><strong>Rain 30%+:</strong> pack rain gloves (yes, they actually work better when wet), towel, waterproof jacket.</li>
+          <li><strong>Wet greens:</strong> putts roll slower — be more aggressive.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="icon">🌅</div>
+        <h3>Sunrise &amp; sunset</h3>
+        <p>A round of 18 holes takes 4 to 4½ hours. Tee off so you finish at least 30 minutes before sunset, or you'll be putting in the dark.</p>
+        <ul class="checklist">
+          <li>Earliest practical tee time: ~30 min after sunrise (greens need to thaw/dry).</li>
+          <li>Latest 18-hole tee time: 4½ hrs before sunset.</li>
+          <li>Latest 9-hole tee time: 2¼ hrs before sunset.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="icon">🌡️</div>
+        <h3>Temperature &amp; ball flight</h3>
+        <p>Cold air is denser — the ball flies shorter. Hot air = longer carries. The rule of thumb: ~2 yards per 10°F shift.</p>
+        <ul class="checklist">
+          <li><strong>Below 50°F:</strong> ball flies 5–8% shorter. Wear layers, keep balls in your pocket to stay warm.</li>
+          <li><strong>50–70°F:</strong> ideal range — most yardages on the course are calibrated here.</li>
+          <li><strong>85°F+:</strong> ball flies further — be careful clubbing down.</li>
+          <li><strong>Altitude:</strong> add ~10% distance per 5,000 ft above sea level.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="icon">🌫️</div>
+        <h3>Humidity &amp; dew point</h3>
+        <p>High humidity makes the air feel heavy but barely affects ball flight. Where it matters: your grip and your stamina.</p>
+        <ul class="checklist">
+          <li>Humid days: extra towel, rosin bag, or grip enhancer to keep clubs from slipping.</li>
+          <li>Dew point above 70°F = oppressive — hydrate aggressively.</li>
+          <li>Greens often play softer in high humidity.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="icon">🌳</div>
+        <h3>Pollen &amp; air quality</h3>
+        <p>If you have allergies or asthma, check pollen counts and AQI (air quality index) before heading out.</p>
+        <ul class="checklist">
+          <li>High tree pollen (spring): take antihistamine 1 hr before tee time.</li>
+          <li>AQI 100+: consider rescheduling if you have respiratory issues.</li>
+          <li>Wildfire smoke: AQI 150+ is unsafe for prolonged outdoor exertion.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout warn" style="margin-top:2rem">
+      <strong>Quick rule of thumb:</strong> wind &gt; rain &gt; cold &gt; heat. The hardest condition to score in is consistent wind. The most dangerous is lightning.
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="brand" style="color:white"><span class="brand-mark">B4U</span><span>b4u.golf</span></div>
+        <p style="color:rgba(255,255,255,0.7);margin-top:0.75rem">Everything you need <em>before</em> you tee off.</p>
+      </div>
+      <div><h4>Before the round</h4><ul><li><a href="weather.html">Weather</a></li><li><a href="courses.html">Courses</a></li><li><a href="checklist.html">Checklist</a></li><li><a href="equipment.html">Equipment</a></li></ul></div>
+      <div><h4>On the course</h4><ul><li><a href="etiquette.html">Etiquette</a></li><li><a href="tips.html">Tips</a></li><li><a href="scorecard.html">Scorecard</a></li></ul></div>
+      <div><h4>Account</h4><ul><li><a href="members.html">Membership</a></li><li><a href="about.html">About</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span data-year>2026</span> b4u.golf — also at b4ugolf.com</span>
+      <span>Built for the love of the game.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
