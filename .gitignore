@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Node (in case we add tooling later)
+node_modules/
+.npm
+
+# Env files (Stripe keys, secrets — NEVER commit these)
+.env
+.env.local
+.env.production
+*.pem
+
+# Build artifacts
+dist/
+build/
+.cache/
