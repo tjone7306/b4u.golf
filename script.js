@@ -83,21 +83,120 @@ async function reverseGeocode(lat, lon) {
   } catch { return null; }
 }
 
-/* ---- Open-Meteo current + daily forecast (no key required) ---- */
+/* ---- Open-Meteo current + daily + hourly forecast (no key required) ---- */
 async function fetchForecast(lat, lon) {
   const params = new URLSearchParams({
     latitude: lat, longitude: lon,
     current: 'temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,weather_code,uv_index',
+    hourly: 'temperature_2m,wind_speed_10m,wind_gusts_10m,precipitation_probability,weather_code,uv_index',
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset',
     temperature_unit: 'fahrenheit',
     wind_speed_unit: 'mph',
     precipitation_unit: 'inch',
     timezone: 'auto',
-    forecast_days: 5
+    forecast_days: 2
   });
   const r = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
   if (!r.ok) throw new Error('Weather fetch failed');
   return r.json();
+}
+
+/* ---- "Best time to play today" — hour-by-hour playability analysis ---- */
+function hourPlayability(temp, wind, gust, precipPct, uv, code) {
+  // Lightning / severe storm = unplayable
+  if ([95,96,99].includes(code)) return { score: 0, reason: 'thunderstorm' };
+  if ([65,73,75,82].includes(code)) return { score: 5, reason: 'heavy precip' };
+
+  let score = 100;
+  const issues = [];
+
+  // Wind (worst single factor for golf)
+  if (gust >= 30) { score -= 50; issues.push(`gusts ${Math.round(gust)} mph`); }
+  else if (wind >= 22) { score -= 30; issues.push(`${Math.round(wind)} mph wind`); }
+  else if (wind >= 15) { score -= 15; issues.push(`${Math.round(wind)} mph wind`); }
+  else if (wind >= 10) { score -= 5; }
+
+  // Rain probability
+  if (precipPct >= 70) { score -= 35; issues.push(`${precipPct}% rain`); }
+  else if (precipPct >= 40) { score -= 15; issues.push(`${precipPct}% rain`); }
+  else if (precipPct >= 20) { score -= 5; }
+
+  // Temperature comfort
+  if (temp < 38) { score -= 25; issues.push('freezing'); }
+  else if (temp < 50) { score -= 10; issues.push('cold'); }
+  else if (temp > 95) { score -= 25; issues.push('extreme heat'); }
+  else if (temp > 88) { score -= 10; issues.push('hot'); }
+
+  // UV burn risk
+  if (uv >= 10) { score -= 8; issues.push('extreme UV'); }
+  else if (uv >= 8) { score -= 4; }
+
+  return { score: Math.max(0, Math.min(100, score)), issues };
+}
+
+function findBestPlayWindows(data) {
+  if (!data.hourly || !data.daily) return [];
+  const hours = data.hourly.time;
+  const now = new Date();
+  const sunrise = new Date(data.daily.sunrise[0]);
+  const sunset  = new Date(data.daily.sunset[0]);
+
+  // Earliest tee: 30 min after sunrise. Latest 18-hole tee: 4.5 hrs before sunset. Latest 9-hole tee: 2.25 hrs before sunset.
+  const earliest = new Date(sunrise.getTime() + 30 * 60_000);
+  const latest18 = new Date(sunset.getTime() - 4.5 * 3600_000);
+  const latest9  = new Date(sunset.getTime() - 2.25 * 3600_000);
+  const cutoff   = latest9; // anything before this still leaves time for at least 9 holes
+
+  // Score each hour from now (rounded down to top of hour) through cutoff
+  const playable = [];
+  for (let i = 0; i < hours.length; i++) {
+    const t = new Date(hours[i]);
+    if (t < now && t.getHours() !== now.getHours()) continue;  // skip past hours (keep current hour)
+    if (t < earliest) continue;
+    if (t > cutoff) break;
+    const p = hourPlayability(
+      data.hourly.temperature_2m[i],
+      data.hourly.wind_speed_10m[i],
+      data.hourly.wind_gusts_10m[i] || 0,
+      data.hourly.precipitation_probability[i] || 0,
+      data.hourly.uv_index[i] || 0,
+      data.hourly.weather_code[i]
+    );
+    playable.push({ time: t, idx: i, ...p, holes18: t <= latest18 });
+  }
+
+  if (!playable.length) return [];
+
+  // Find contiguous runs where score >= 70 (workable). Return top 2 runs by avg score.
+  const runs = [];
+  let cur = null;
+  for (const h of playable) {
+    if (h.score >= 70) {
+      if (!cur) cur = { start: h.time, end: h.time, hours: [h], holes18: h.holes18 };
+      else { cur.end = h.time; cur.hours.push(h); cur.holes18 = cur.holes18 && h.holes18; }
+    } else {
+      if (cur) { runs.push(cur); cur = null; }
+    }
+  }
+  if (cur) runs.push(cur);
+
+  // Tag each run with avg score + a summary
+  runs.forEach(r => {
+    r.avgScore = Math.round(r.hours.reduce((a,h) => a + h.score, 0) / r.hours.length);
+    const allIssues = new Set();
+    r.hours.forEach(h => (h.issues || []).forEach(i => allIssues.add(i)));
+    r.issues = [...allIssues];
+    r.peakScore = Math.max(...r.hours.map(h => h.score));
+  });
+
+  // Sort by length × avg score (longer high-score windows preferred)
+  return runs
+    .sort((a,b) => (b.hours.length * b.avgScore) - (a.hours.length * a.avgScore))
+    .slice(0, 2);
+}
+
+function fmtHour(d) {
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
 }
 
 const WX_CODES = {
@@ -453,12 +552,15 @@ async function initFlyover() {
     const { lat, lon } = await getLocation();
     const place = await reverseGeocode(lat, lon);
     const data  = await fetchForecast(lat, lon);
+    renderBestTimeToPlay(data, place);
     renderReadiness(data, place);
     renderFairwayTiles(data);
     renderHomeForecast(data);
     renderHomeCourses(lat, lon, place);
   } catch (e) {
     renderReadinessOffline();
+    const bt = document.getElementById('best-time');
+    if (bt) bt.innerHTML = `<p class="muted" style="color:rgba(255,255,255,0.85)">📍 Allow location access for tee-time recommendations.</p>`;
     const courseList = document.getElementById('home-courses-list');
     if (courseList) {
       courseList.innerHTML = `<div class="callout warn" style="color:var(--green-900);background:rgba(255,255,255,0.92)">📍 Allow location access to see courses near you. <a href="courses.html" style="color:var(--green-700);font-weight:700">Or search a city manually →</a></div>`;
@@ -466,6 +568,64 @@ async function initFlyover() {
     const fcRows = document.getElementById('fairway-forecast-rows');
     if (fcRows) fcRows.innerHTML = `<p class="muted" style="font-size:0.9rem">Allow location access to see forecast.</p>`;
   }
+}
+
+/* ---- Render the "Best time to play today" widget ---- */
+function renderBestTimeToPlay(data, place) {
+  const box = document.getElementById('best-time');
+  if (!box) return;
+
+  const windows = findBestPlayWindows(data);
+  const sunset = new Date(data.daily.sunset[0]);
+  const now = new Date();
+  const minutesLeft = (sunset - now) / 60_000;
+
+  if (!windows.length) {
+    // No "good" windows today
+    if (minutesLeft < 60) {
+      box.innerHTML = `
+        <div class="bt-headline">⏰ <strong>Out of daylight today</strong></div>
+        <div class="bt-sub">Sun sets at ${fmtHour(sunset)}. Check tomorrow's forecast on the <a href="weather.html">weather page</a>.</div>`;
+    } else {
+      box.innerHTML = `
+        <div class="bt-headline">⚠️ <strong>Tough day to score</strong></div>
+        <div class="bt-sub">No high-quality playing windows in today's forecast. The whole day's conditions are below par for golf — wind, rain, or extreme temps. <a href="weather.html">See the full breakdown →</a></div>`;
+    }
+    return;
+  }
+
+  // Render windows as cards
+  const cards = windows.map((w, i) => {
+    const startStr = fmtHour(w.start);
+    const endStr   = fmtHour(new Date(w.end.getTime() + 60 * 60_000)); // window includes its end hour
+    const len = w.hours.length;
+    const lengthLabel = len === 1 ? '1 hour' : `${len} hours`;
+    const holesLabel = w.holes18 ? '18 holes' : '9 holes only';
+    const issuesLabel = w.issues.length ? `<span class="bt-issues">⚠ ${w.issues.join(', ')}</span>` : '<span class="bt-clean">✓ all conditions clear</span>';
+    const scoreColor = w.avgScore >= 90 ? 'var(--green-300)' : w.avgScore >= 80 ? '#a8d99c' : 'var(--sun)';
+    return `
+      <div class="bt-card" style="border-left-color:${scoreColor}">
+        <div class="bt-card-top">
+          <div>
+            <div class="bt-window">${i === 0 ? '🏌️ Best window' : '⛳ Also good'}</div>
+            <div class="bt-time">${startStr} – ${endStr}</div>
+          </div>
+          <div class="bt-score" style="color:${scoreColor}">${w.avgScore}</div>
+        </div>
+        <div class="bt-meta">${lengthLabel} · ${holesLabel} · ${issuesLabel}</div>
+      </div>`;
+  }).join('');
+
+  box.innerHTML = `
+    <div class="bt-head">
+      <div>
+        <div class="bt-eyebrow">Best time to play today</div>
+        <div class="bt-place">${place || 'your area'}</div>
+      </div>
+      <div class="bt-sunset">🌇 sunset ${fmtHour(sunset)}</div>
+    </div>
+    <div class="bt-cards">${cards}</div>
+  `;
 }
 
 /* ---- Home page: 5-day forecast strip ---- */
