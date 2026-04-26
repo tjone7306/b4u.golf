@@ -29,22 +29,25 @@
   </div>
 </header>
 
-<!-- Yardage track on the right edge — five "shots" of the hole -->
+<!-- Yardage track on the right edge -->
 <aside class="yardage-track" aria-hidden="true">
-  <div class="yardage-tick active" data-target="#tee">
-    <span class="tick-label">Tee box · Readiness Score</span>
-  </div>
-  <div class="yardage-tick" data-target="#fairway">
-    <span class="tick-label">Fairway · Weather</span>
+  <div class="yardage-tick active" data-target="#besttime">
+    <span class="tick-label">Best time to play</span>
   </div>
   <div class="yardage-tick" data-target="#approach">
-    <span class="tick-label">Approach · Courses</span>
+    <span class="tick-label">Courses near you</span>
+  </div>
+  <div class="yardage-tick" data-target="#fairway">
+    <span class="tick-label">Live conditions</span>
+  </div>
+  <div class="yardage-tick" data-target="#tee">
+    <span class="tick-label">Round Readiness Score</span>
   </div>
   <div class="yardage-tick" data-target="#green">
-    <span class="tick-label">Green · Pre-round</span>
+    <span class="tick-label">Pre-round prep</span>
   </div>
   <div class="yardage-tick" data-target="#pin">
-    <span class="tick-label">Pin · Membership</span>
+    <span class="tick-label">Membership</span>
   </div>
 </aside>
 
@@ -176,17 +179,77 @@
   <div id="flyover-ball" class="flyover-ball" aria-hidden="true"></div>
 
   <!-- ============================================================
-       SHOT 1 · TEE BOX — Hero with Round Readiness Score
+       SHOT 1 · BEST TIME TO PLAY (NEW HERO)
+       ============================================================ -->
+  <section id="besttime" class="shot best-time-section">
+    <div class="shot-inner">
+      <span class="shot-eyebrow"><span class="pin">1</span> When to tee off · live</span>
+      <h2 class="display">When should you<br>play <span class="accent">today?</span></h2>
+      <p class="deck">Most golf weather apps show you a forecast. We tell you the <em>exact hours</em> to play — wind, rain, UV, and daylight all factored in, by the hour.</p>
+
+      <div class="best-time-card" id="best-time" style="margin-top:2rem">
+        <p class="muted" style="font-size:0.95rem">📍 Detecting your location to find the best playing windows today…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SHOT 2 · APPROACH — Courses near you (moved up)
+       ============================================================ -->
+  <section id="approach" class="shot approach dark">
+    <div class="shot-inner">
+      <span class="shot-eyebrow"><span class="pin">2</span> Courses · within 25 miles</span>
+      <h2 class="display">Where are you<br><span class="accent">playing?</span></h2>
+      <p class="deck">Every public course around you, with one-click tee-time deep-links to GolfNow filtered to that exact course. No more landing on the wrong city's results.</p>
+
+      <div class="approach-card" style="margin-top:2rem">
+        <p id="home-courses-place" style="color:rgba(255,255,255,0.85);font-size:0.95rem;margin:0 0 1rem">📍 Loading courses near you…</p>
+        <div id="home-courses-list"><p class="muted" style="color:rgba(255,255,255,0.7)">Detecting your location…</p></div>
+        <div style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap">
+          <a href="courses.html" class="btn" style="background:white;color:var(--green-900)">See all courses →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SHOT 3 · FAIRWAY — Weather details
+       ============================================================ -->
+  <section id="fairway" class="shot fairway dark">
+    <div class="shot-inner">
+      <span class="shot-eyebrow"><span class="pin">3</span> Conditions · live</span>
+      <h2 class="display">The wind. The rain.<br>The <span class="accent">90 minutes</span> before you tee off.</h2>
+      <p class="deck">Forecasts aren't the same as <em>golf-ready</em> forecasts. Wind direction matters more than speed. Dew slows your fairway. UV burns when you forget the brim. Here's what's coming today, with what to do about each.</p>
+
+      <div class="weather-tiles" id="fairway-tiles" style="margin-top:2rem">
+        <div class="weather-tile"><div class="t-label">Loading…</div><div class="t-value">—</div></div>
+        <div class="weather-tile"><div class="t-label">Loading…</div><div class="t-value">—</div></div>
+        <div class="weather-tile"><div class="t-label">Loading…</div><div class="t-value">—</div></div>
+        <div class="weather-tile"><div class="t-label">Loading…</div><div class="t-value">—</div></div>
+      </div>
+
+      <div id="fairway-forecast" style="margin-top:1.5rem;background:rgba(255,255,255,0.92);border-radius:16px;padding:1.25rem;box-shadow:0 8px 30px rgba(0,0,0,0.18)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+          <strong style="color:var(--green-900);font-family:var(--font-display);font-size:1.1rem">5-day forecast</strong>
+          <a href="weather.html" style="font-size:0.85rem">Full details →</a>
+        </div>
+        <div id="fairway-forecast-rows"><p class="muted" style="font-size:0.9rem">Loading forecast…</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SHOT 4 · TEE BOX (Round Readiness Score, now a supporting feature)
        ============================================================ -->
   <section id="tee" class="shot tee-box">
     <div class="shot-inner">
       <div class="tee-grid">
         <div>
-          <span class="shot-eyebrow"><span class="pin">1</span> Tee box · 472 yds, par 4</span>
-          <h2 class="display">Should you<br>play <span class="accent">today?</span></h2>
-          <p class="deck">Every golf app shows you the weather. We answer the actual question: is today the day, or should you reschedule? One number — your <strong>Round Readiness Score</strong> — built from live wind, precipitation, daylight, and course-condition risk.</p>
+          <span class="shot-eyebrow"><span class="pin">4</span> Round Readiness · today</span>
+          <h2 class="display">One number<br>for the <span class="accent">whole day.</span></h2>
+          <p class="deck">If "best time" tells you <em>when</em> to play, the Round Readiness Score tells you <em>how good a day overall</em> it is. A single 0–100 number combining wind, comfort, daylight, and course-condition risk.</p>
           <div style="display:flex;gap:0.75rem;margin-top:1.5rem;flex-wrap:wrap">
-            <a href="#fairway" class="btn">Walk the hole ↓</a>
+            <a href="#green" class="btn">Pre-round prep ↓</a>
             <a href="members.html" class="btn btn-secondary">Get Pro · $1.99/mo</a>
           </div>
         </div>
@@ -219,51 +282,6 @@
           </div>
 
           <div class="score-summary" id="score-verdict"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SHOT 2 · FAIRWAY — Weather details
-       ============================================================ -->
-  <section id="fairway" class="shot fairway dark">
-    <div class="shot-inner">
-      <span class="shot-eyebrow"><span class="pin">2</span> Fairway · 200 yds out</span>
-      <h2 class="display">The wind. The rain.<br>The <span class="accent">90 minutes</span> before you tee off.</h2>
-      <p class="deck">Forecasts aren't the same as <em>golf-ready</em> forecasts. Wind direction matters more than speed. Dew slows your fairway. UV burns when you forget the brim. Here's what's coming today, with what to do about each.</p>
-
-      <div class="weather-tiles" id="fairway-tiles" style="margin-top:2rem">
-        <div class="weather-tile"><div class="t-label">Loading…</div><div class="t-value">—</div></div>
-        <div class="weather-tile"><div class="t-label">Loading…</div><div class="t-value">—</div></div>
-        <div class="weather-tile"><div class="t-label">Loading…</div><div class="t-value">—</div></div>
-        <div class="weather-tile"><div class="t-label">Loading…</div><div class="t-value">—</div></div>
-      </div>
-
-      <div id="fairway-forecast" style="margin-top:1.5rem;background:rgba(255,255,255,0.92);border-radius:16px;padding:1.25rem;box-shadow:0 8px 30px rgba(0,0,0,0.18)">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
-          <strong style="color:var(--green-900);font-family:var(--font-display);font-size:1.1rem">5-day forecast</strong>
-          <a href="weather.html" style="font-size:0.85rem">Full details →</a>
-        </div>
-        <div id="fairway-forecast-rows"><p class="muted" style="font-size:0.9rem">Loading forecast…</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SHOT 3 · APPROACH — Courses near you
-       ============================================================ -->
-  <section id="approach" class="shot approach dark">
-    <div class="shot-inner">
-      <span class="shot-eyebrow"><span class="pin">3</span> Approach · 100 yds out</span>
-      <h2 class="display">Where are you<br><span class="accent">playing</span> next?</h2>
-      <p class="deck">GPS course finder pulls every public course within 25 miles. Get directions, scorecards, and live tee-time inventory from GolfNow and GolfPass — no hopping between three apps to plan a round.</p>
-
-      <div class="approach-card" style="margin-top:2rem">
-        <p id="home-courses-place" style="color:rgba(255,255,255,0.85);font-size:0.95rem;margin:0 0 1rem">📍 Loading courses near you…</p>
-        <div id="home-courses-list"><p class="muted" style="color:rgba(255,255,255,0.7)">Detecting your location…</p></div>
-        <div style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap">
-          <a href="courses.html" class="btn" style="background:white;color:var(--green-900)">See all courses →</a>
         </div>
       </div>
     </div>
