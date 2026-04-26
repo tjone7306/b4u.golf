@@ -199,6 +199,132 @@ function fmtHour(d) {
   return d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
 }
 
+/* =========================================================================
+   GOLFNOW DEEP-LINK BUILDER
+   GolfNow ignores searchTerm and Latitude/Longitude URL params and uses your
+   IP for "near me" — Tim was getting Orlando results from his Phoenix IP.
+   The /destinations/{id}-{slug} URL pattern overrides IP geo. We map the
+   user's city to the nearest of 17 GolfNow metro destinations.
+   ========================================================================= */
+const GOLFNOW_DESTINATIONS = {
+  // Phoenix-Scottsdale (id 9)
+  'phoenix':'9-phoenix-scottsdale','scottsdale':'9-phoenix-scottsdale','tempe':'9-phoenix-scottsdale',
+  'mesa':'9-phoenix-scottsdale','chandler':'9-phoenix-scottsdale','gilbert':'9-phoenix-scottsdale',
+  'glendale az':'9-phoenix-scottsdale','peoria az':'9-phoenix-scottsdale','surprise':'9-phoenix-scottsdale',
+  'goodyear':'9-phoenix-scottsdale','avondale':'9-phoenix-scottsdale','sun city':'9-phoenix-scottsdale',
+  'cave creek':'9-phoenix-scottsdale','carefree':'9-phoenix-scottsdale','fountain hills':'9-phoenix-scottsdale',
+  'paradise valley':'9-phoenix-scottsdale','queen creek':'9-phoenix-scottsdale','apache junction':'9-phoenix-scottsdale',
+  'litchfield park':'9-phoenix-scottsdale',
+  // Orlando (41)
+  'orlando':'41-orlando','kissimmee':'41-orlando','winter park':'41-orlando','winter garden':'41-orlando',
+  'lake buena vista':'41-orlando','sanford':'41-orlando','apopka':'41-orlando','ocoee':'41-orlando',
+  'davenport':'41-orlando','clermont':'41-orlando','leesburg':'41-orlando','reunion':'41-orlando',
+  'haines city':'41-orlando','celebration':'41-orlando',
+  // Tampa (43)
+  'tampa':'43-tampa','saint petersburg':'43-tampa','st petersburg':'43-tampa','st. petersburg':'43-tampa',
+  'clearwater':'43-tampa','sarasota':'43-tampa','bradenton':'43-tampa','venice':'43-tampa',
+  'palm harbor':'43-tampa','wesley chapel':'43-tampa','brandon':'43-tampa',
+  // Miami / South Florida (38)
+  'miami':'38-miami','miami beach':'38-miami','fort lauderdale':'38-miami','ft lauderdale':'38-miami',
+  'boca raton':'38-miami','coral gables':'38-miami','hollywood fl':'38-miami','hialeah':'38-miami',
+  'pompano beach':'38-miami','aventura':'38-miami','deerfield beach':'38-miami','west palm beach':'38-miami',
+  'palm beach':'38-miami','jupiter':'38-miami','doral':'38-miami','homestead':'38-miami',
+  'pembroke pines':'38-miami','plantation':'38-miami','sunrise':'38-miami',
+  // Atlanta (45)
+  'atlanta':'45-atlanta','marietta':'45-atlanta','roswell':'45-atlanta','alpharetta':'45-atlanta',
+  'decatur':'45-atlanta','sandy springs':'45-atlanta','duluth':'45-atlanta','lawrenceville':'45-atlanta',
+  'kennesaw':'45-atlanta','newnan':'45-atlanta','johns creek':'45-atlanta','woodstock':'45-atlanta',
+  'cumming':'45-atlanta','gainesville ga':'45-atlanta',
+  // Toronto (167)
+  'toronto':'167-toronto','mississauga':'167-toronto','brampton':'167-toronto','oakville':'167-toronto',
+  'scarborough':'167-toronto','etobicoke':'167-toronto','markham':'167-toronto','vaughan':'167-toronto',
+  'richmond hill':'167-toronto','ajax':'167-toronto','pickering':'167-toronto','whitby':'167-toronto',
+  // NY Metro (110)
+  'new york':'110-new-york-metro','manhattan':'110-new-york-metro','brooklyn':'110-new-york-metro',
+  'queens':'110-new-york-metro','bronx':'110-new-york-metro','staten island':'110-new-york-metro',
+  'long island':'110-new-york-metro','white plains':'110-new-york-metro','yonkers':'110-new-york-metro',
+  'stamford':'110-new-york-metro','jersey city':'110-new-york-metro','newark nj':'110-new-york-metro',
+  'hoboken':'110-new-york-metro','hempstead':'110-new-york-metro','huntington':'110-new-york-metro',
+  // Denver (30)
+  'denver':'30-denver','aurora':'30-denver','lakewood':'30-denver','boulder':'30-denver','parker':'30-denver',
+  'centennial':'30-denver','westminster':'30-denver','englewood':'30-denver','littleton':'30-denver',
+  'thornton':'30-denver','arvada':'30-denver','broomfield':'30-denver','castle rock':'30-denver',
+  'highlands ranch':'30-denver','golden':'30-denver',
+  // Dallas-Ft. Worth (143)
+  'dallas':'143-dallas-ft-worth','fort worth':'143-dallas-ft-worth','ft worth':'143-dallas-ft-worth',
+  'plano':'143-dallas-ft-worth','arlington':'143-dallas-ft-worth','frisco':'143-dallas-ft-worth',
+  'irving':'143-dallas-ft-worth','garland':'143-dallas-ft-worth','mesquite':'143-dallas-ft-worth',
+  'mckinney':'143-dallas-ft-worth','allen':'143-dallas-ft-worth','carrollton':'143-dallas-ft-worth',
+  'denton':'143-dallas-ft-worth','lewisville':'143-dallas-ft-worth','grand prairie':'143-dallas-ft-worth',
+  'rockwall':'143-dallas-ft-worth','flower mound':'143-dallas-ft-worth',
+  // San Diego (22)
+  'san diego':'22-san-diego','chula vista':'22-san-diego','carlsbad':'22-san-diego','oceanside':'22-san-diego',
+  'escondido':'22-san-diego','encinitas':'22-san-diego','del mar':'22-san-diego','la jolla':'22-san-diego',
+  'vista':'22-san-diego','poway':'22-san-diego','el cajon':'22-san-diego','coronado':'22-san-diego',
+  // Chicago (56)
+  'chicago':'56-chicago','naperville':'56-chicago','rockford':'56-chicago','joliet':'56-chicago',
+  'schaumburg':'56-chicago','evanston':'56-chicago','oak park':'56-chicago','des plaines':'56-chicago',
+  'wheaton':'56-chicago','elgin':'56-chicago','arlington heights':'56-chicago','palatine':'56-chicago',
+  // Myrtle Beach (134)
+  'myrtle beach':'134-myrtle-beach','north myrtle beach':'134-myrtle-beach','conway':'134-myrtle-beach',
+  'pawleys island':'134-myrtle-beach','murrells inlet':'134-myrtle-beach','surfside beach':'134-myrtle-beach',
+  'garden city':'134-myrtle-beach',
+  // San Francisco / Bay Area (23)
+  'san francisco':'23-san-francisco','san jose':'23-san-francisco','oakland':'23-san-francisco',
+  'berkeley':'23-san-francisco','palo alto':'23-san-francisco','mountain view':'23-san-francisco',
+  'fremont':'23-san-francisco','sunnyvale':'23-san-francisco','santa clara':'23-san-francisco',
+  'redwood city':'23-san-francisco','san mateo':'23-san-francisco','daly city':'23-san-francisco',
+  'hayward':'23-san-francisco','milpitas':'23-san-francisco','cupertino':'23-san-francisco',
+  // Hawaii (166)
+  'honolulu':'166-hawaii','maui':'166-hawaii','kona':'166-hawaii','lihue':'166-hawaii','kauai':'166-hawaii',
+  'hilo':'166-hawaii','wailea':'166-hawaii','kaanapali':'166-hawaii','lahaina':'166-hawaii','kailua':'166-hawaii',
+  'waikiki':'166-hawaii','poipu':'166-hawaii','princeville':'166-hawaii',
+  // Palm Springs / Coachella Valley (20)
+  'palm springs':'20-palm-springs','palm desert':'20-palm-springs','la quinta':'20-palm-springs',
+  'indian wells':'20-palm-springs','rancho mirage':'20-palm-springs','cathedral city':'20-palm-springs',
+  'indio':'20-palm-springs','coachella':'20-palm-springs','desert hot springs':'20-palm-springs',
+  // Philadelphia (126)
+  'philadelphia':'126-philadelphia','philly':'126-philadelphia','camden nj':'126-philadelphia',
+  'king of prussia':'126-philadelphia','wilmington de':'126-philadelphia','cherry hill':'126-philadelphia',
+  // Las Vegas (104)
+  'las vegas':'104-las-vegas','henderson':'104-las-vegas','north las vegas':'104-las-vegas',
+  'paradise':'104-las-vegas','summerlin':'104-las-vegas','spring valley':'104-las-vegas',
+};
+
+// State-level fallback for states with one obvious GolfNow destination
+const GOLFNOW_STATE_FALLBACK = {
+  'arizona':'9-phoenix-scottsdale','az':'9-phoenix-scottsdale',
+  'colorado':'30-denver','co':'30-denver',
+  'georgia':'45-atlanta','ga':'45-atlanta',
+  'illinois':'56-chicago','il':'56-chicago',
+  'nevada':'104-las-vegas','nv':'104-las-vegas',
+  'hawaii':'166-hawaii','hi':'166-hawaii',
+  'ontario':'167-toronto',
+};
+
+function findGolfNowDestination(place) {
+  if (!place) return null;
+  const lower = place.toLowerCase().trim();
+  // Try matching individual cities first
+  for (const city in GOLFNOW_DESTINATIONS) {
+    if (lower.includes(city)) return GOLFNOW_DESTINATIONS[city];
+  }
+  // Fall back to state-level matches for unambiguous states
+  for (const state in GOLFNOW_STATE_FALLBACK) {
+    if (lower.includes(state)) return GOLFNOW_STATE_FALLBACK[state];
+  }
+  return null;
+}
+
+function buildTeeTimeUrl(courseName, place) {
+  const dest = findGolfNowDestination(place);
+  if (dest) {
+    return `https://www.golfnow.com/destinations/${dest}?searchTerm=${encodeURIComponent(courseName)}`;
+  }
+  // Fallback: searchTerm-only URL (geo-targeted to user's IP, may be wrong)
+  return `https://www.golfnow.com/tee-times/search?searchTerm=${encodeURIComponent(courseName)}`;
+}
+
 const WX_CODES = {
   0:  ['Clear', '☀️'],
   1:  ['Mostly clear', '🌤️'],
@@ -386,7 +512,7 @@ async function initCourseFinder() {
   const input = document.getElementById('cf-input');
   const details = document.getElementById('cf-search-details');
 
-  function render(lat, lon, label) {
+  function render(lat, lon, label, place) {
     if (placeBox) placeBox.textContent = label || '';
     const mapsNear = `https://www.google.com/maps/search/golf+courses/@${lat},${lon},12z`;
     const mapsPublic = `https://www.google.com/maps/search/public+golf+courses/@${lat},${lon},12z`;
@@ -405,17 +531,17 @@ async function initCourseFinder() {
       </div>
 
       <h3 style="margin-top:2rem">Courses within ~25 miles of you</h3>
-      <p class="muted" style="font-size:0.9rem">Click <strong>"Tee times"</strong> on any course below to search booking sites for that <em>specific</em> course — no more landing on the wrong city's results.</p>
+      <p class="muted" style="font-size:0.9rem">Click <strong>"Tee times"</strong> on any course below to open GolfNow's booking page filtered to your metro area — no more Orlando results when you're in Phoenix.</p>
       <div class="course-list" id="cf-list"><p class="muted">Loading nearby courses…</p></div>
     `;
 
-    fetchNearbyCourses(lat, lon);
+    fetchNearbyCourses(lat, lon, place);
   }
 
   try {
     const { lat, lon } = await getLocation();
     const place = await reverseGeocode(lat, lon);
-    render(lat, lon, place ? `Showing results near ${place}` : '');
+    render(lat, lon, place ? `Showing results near ${place}` : '', place);
   } catch {
     box.innerHTML = `<div class="callout warn">📍 Location access was denied or unavailable. Enter a city or ZIP code below to find courses.</div>`;
     if (details) details.open = true;
@@ -431,14 +557,15 @@ async function initCourseFinder() {
         const j = await r.json();
         const p = j.results && j.results[0];
         if (!p) { box.innerHTML = `<p class="muted">Couldn't find “${q}”.</p>`; return; }
-        render(p.latitude, p.longitude, `Showing results near ${[p.name,p.admin1].filter(Boolean).join(', ')}`);
+        const place = [p.name, p.admin1].filter(Boolean).join(', ');
+        render(p.latitude, p.longitude, `Showing results near ${place}`, place);
       } catch { box.innerHTML = `<p class="muted">Search failed. Try again.</p>`; }
     });
   }
 }
 
 /* ---- Pull nearby courses from OpenStreetMap (Overpass API, no key) ---- */
-async function fetchNearbyCourses(lat, lon) {
+async function fetchNearbyCourses(lat, lon, place) {
   const list = document.getElementById('cf-list');
   if (!list) return;
   const query = `[out:json][timeout:20];
@@ -478,8 +605,8 @@ async function fetchNearbyCourses(lat, lon) {
     list.innerHTML = items.map(c => {
       const maps    = `https://www.google.com/maps/search/${encodeURIComponent(c.name)}/@${c.lat},${c.lon},15z`;
       const drive   = `https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}`;
-      // GolfNow's searchTerm= is a real deep-link to their booking page, filtered to this course
-      const teeGolfNow = `https://www.golfnow.com/tee-times/search?searchTerm=${encodeURIComponent(c.name)}`;
+      // Use destination-aware URL so GolfNow doesn't fall back to IP-based geo
+      const teeGolfNow = buildTeeTimeUrl(c.name, place);
       const website = `https://www.google.com/search?q=${encodeURIComponent(c.name + ' golf course official website')}`;
       const par    = c.tags.par ? ` · Par ${c.tags.par}` : '';
       const access = c.tags.access ? ` · ${c.tags.access[0].toUpperCase()+c.tags.access.slice(1)}` : '';
@@ -690,7 +817,7 @@ async function renderHomeCourses(lat, lon, place) {
     }
 
     list.innerHTML = items.map(c => {
-      const teeGolfNow = `https://www.golfnow.com/tee-times/search?searchTerm=${encodeURIComponent(c.name)}`;
+      const teeGolfNow = buildTeeTimeUrl(c.name, place);
       const maps    = `https://www.google.com/maps/search/${encodeURIComponent(c.name)}/@${c.lat},${c.lon},15z`;
       const drive   = `https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}`;
       return `<div style="background:rgba(255,255,255,0.95);border-radius:14px;padding:1rem 1.1rem;margin-bottom:0.6rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem 1rem">
