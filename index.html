@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B4U.Golf — Your Round Readiness Score</title>
+  <meta name="description" content="The only golf site with a Round Readiness Score — a single 0-100 number that tells you exactly how prepared you are for your next tee time. Pre-round weather, courses, checklist, and more." />
+  <meta name="theme-color" content="#1a4d2e" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%231a4d2e'/%3E%3Ctext x='50' y='66' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EB%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav">
+    <a href="index.html" class="brand"><span class="brand-mark">B4U</span><span>b4u.golf</span></a>
+    <button class="nav-toggle" aria-label="Toggle navigation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg></button>
+    <ul class="nav-links">
+      <li><a href="weather.html">Weather</a></li>
+      <li><a href="courses.html">Courses</a></li>
+      <li><a href="checklist.html">Checklist</a></li>
+      <li><a href="etiquette.html">Etiquette</a></li>
+      <li><a href="equipment.html">Equipment</a></li>
+      <li><a href="tips.html">Tips</a></li>
+      <li><a href="scorecard.html">Scorecard</a></li>
+      <li><a href="members.html" class="btn btn-secondary" style="padding:0.45rem 1rem">Join Free</a></li>
+    </ul>
+  </div>
+</header>
+
+<!-- Yardage track on the right edge — five "shots" of the hole -->
+<aside class="yardage-track" aria-hidden="true">
+  <div class="yardage-tick active" data-target="#tee">
+    <span class="tick-label">Tee box · Readiness Score</span>
+  </div>
+  <div class="yardage-tick" data-target="#fairway">
+    <span class="tick-label">Fairway · Weather</span>
+  </div>
+  <div class="yardage-tick" data-target="#approach">
+    <span class="tick-label">Approach · Courses</span>
+  </div>
+  <div class="yardage-tick" data-target="#green">
+    <span class="tick-label">Green · Pre-round</span>
+  </div>
+  <div class="yardage-tick" data-target="#pin">
+    <span class="tick-label">Pin · Membership</span>
+  </div>
+</aside>
+
+<!-- THE FLYOVER — the entire scrolling experience is one golf hole, top-down -->
+<div id="flyover" class="flyover">
+  <!-- Background SVG: stylized aerial view of a golf hole, stretches full height -->
+  <div class="flyover-bg" aria-hidden="true">
+    <svg viewBox="0 0 800 3000" preserveAspectRatio="xMidYMin slice">
+      <defs>
+        <linearGradient id="fairwayShade" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stop-color="#2d6b3a" stop-opacity="0.45"/>
+          <stop offset="50%" stop-color="#3d8b50" stop-opacity="0"/>
+          <stop offset="100%" stop-color="#2d6b3a" stop-opacity="0.45"/>
+        </linearGradient>
+        <radialGradient id="bunkerGrad" cx="0.5" cy="0.4" r="0.6">
+          <stop offset="0%" stop-color="#f3e2b5"/>
+          <stop offset="100%" stop-color="#c9b07c"/>
+        </radialGradient>
+        <radialGradient id="waterGrad" cx="0.5" cy="0.5" r="0.7">
+          <stop offset="0%" stop-color="#7ec0e0"/>
+          <stop offset="80%" stop-color="#3a7e9a"/>
+          <stop offset="100%" stop-color="#2c5d76"/>
+        </radialGradient>
+        <radialGradient id="greenGrad" cx="0.5" cy="0.4" r="0.65">
+          <stop offset="0%" stop-color="#9fdb80"/>
+          <stop offset="100%" stop-color="#3d8b50"/>
+        </radialGradient>
+        <pattern id="grass" width="6" height="6" patternUnits="userSpaceOnUse">
+          <path d="M0 5 L2 2 L4 5 L6 2" stroke="rgba(255,255,255,0.04)" fill="none"/>
+        </pattern>
+      </defs>
+
+      <!-- Tee box (top of hole) -->
+      <rect x="350" y="80" width="100" height="60" rx="6" fill="#a8d99c" stroke="#5e9e60" stroke-width="2"/>
+      <rect x="370" y="92" width="8" height="36" fill="white"/>
+      <rect x="422" y="92" width="8" height="36" fill="white"/>
+      <text x="400" y="160" text-anchor="middle" fill="rgba(10,47,29,0.55)" font-family="ui-sans-serif,system-ui" font-size="14" font-weight="700" letter-spacing="2">TEE · 472 YDS</text>
+
+      <!-- Fairway as a flowing curved shape (the "hole" runs top → bottom) -->
+      <path d="M 320 140
+               C 280 360, 360 600, 380 820
+               C 400 1040, 320 1240, 300 1460
+               C 280 1680, 380 1880, 420 2080
+               C 460 2280, 440 2480, 410 2700
+               L 410 2820
+               C 420 2860, 430 2880, 460 2880
+               L 540 2880
+               C 570 2880, 580 2860, 590 2820
+               L 590 2700
+               C 580 2480, 600 2280, 560 2080
+               C 520 1880, 580 1680, 600 1460
+               C 620 1240, 540 1040, 520 820
+               C 500 600, 580 360, 540 140
+               Z"
+            fill="#3d8b50" stroke="#2d6b3a" stroke-width="3"/>
+      <!-- Fairway shading -->
+      <path d="M 320 140
+               C 280 360, 360 600, 380 820
+               C 400 1040, 320 1240, 300 1460
+               C 280 1680, 380 1880, 420 2080
+               C 460 2280, 440 2480, 410 2700
+               L 590 2700
+               C 580 2480, 600 2280, 560 2080
+               C 520 1880, 580 1680, 600 1460
+               C 620 1240, 540 1040, 520 820
+               C 500 600, 580 360, 540 140
+               Z"
+            fill="url(#fairwayShade)"/>
+
+      <!-- Trees flanking the fairway -->
+      <g fill="#1a4d2e" opacity="0.85">
+        <circle cx="180" cy="280" r="40"/><circle cx="120" cy="380" r="50"/><circle cx="220" cy="500" r="35"/>
+        <circle cx="140" cy="700" r="55"/><circle cx="200" cy="900" r="40"/><circle cx="100" cy="1100" r="45"/>
+        <circle cx="180" cy="1320" r="50"/><circle cx="240" cy="1520" r="38"/><circle cx="120" cy="1720" r="52"/>
+        <circle cx="200" cy="1920" r="42"/><circle cx="160" cy="2120" r="48"/><circle cx="100" cy="2320" r="40"/>
+        <circle cx="200" cy="2520" r="45"/><circle cx="140" cy="2720" r="50"/>
+        <!-- Right side -->
+        <circle cx="640" cy="320" r="45"/><circle cx="700" cy="460" r="38"/><circle cx="620" cy="580" r="50"/>
+        <circle cx="700" cy="780" r="40"/><circle cx="640" cy="980" r="48"/><circle cx="720" cy="1180" r="42"/>
+        <circle cx="660" cy="1380" r="50"/><circle cx="600" cy="1560" r="40"/><circle cx="700" cy="1780" r="48"/>
+        <circle cx="640" cy="1980" r="45"/><circle cx="720" cy="2180" r="40"/><circle cx="660" cy="2380" r="50"/>
+        <circle cx="700" cy="2580" r="42"/><circle cx="640" cy="2780" r="48"/>
+      </g>
+      <g fill="#2d6b3a" opacity="0.7">
+        <!-- Lighter tree highlights -->
+        <circle cx="180" cy="280" r="20"/><circle cx="120" cy="380" r="25"/>
+        <circle cx="640" cy="320" r="22"/><circle cx="700" cy="460" r="20"/>
+        <circle cx="200" cy="900" r="22"/><circle cx="660" cy="1380" r="25"/>
+      </g>
+
+      <!-- Fairway bunkers -->
+      <ellipse cx="350" cy="700" rx="50" ry="22" fill="url(#bunkerGrad)" stroke="#a08854" stroke-width="2"/>
+      <ellipse cx="500" cy="1300" rx="42" ry="18" fill="url(#bunkerGrad)" stroke="#a08854" stroke-width="2"/>
+      <ellipse cx="380" cy="1900" rx="55" ry="20" fill="url(#bunkerGrad)" stroke="#a08854" stroke-width="2"/>
+
+      <!-- Water hazard -->
+      <path d="M 250 1480 C 240 1500, 250 1540, 280 1560 C 310 1570, 340 1560, 360 1540 C 370 1520, 360 1500, 340 1490 C 310 1480, 270 1475, 250 1480 Z"
+            fill="url(#waterGrad)" stroke="#2c5d76" stroke-width="2"/>
+      <path d="M 270 1510 Q 290 1500, 310 1510" stroke="rgba(255,255,255,0.4)" stroke-width="2" fill="none"/>
+      <path d="M 280 1530 Q 300 1520, 320 1530" stroke="rgba(255,255,255,0.3)" stroke-width="2" fill="none"/>
+
+      <!-- The Green (bottom — destination) -->
+      <ellipse cx="500" cy="2780" rx="120" ry="80" fill="url(#greenGrad)" stroke="#2d6b3a" stroke-width="3"/>
+      <!-- Greenside bunkers -->
+      <ellipse cx="430" cy="2840" rx="32" ry="18" fill="url(#bunkerGrad)" stroke="#a08854" stroke-width="2"/>
+      <ellipse cx="570" cy="2840" rx="32" ry="18" fill="url(#bunkerGrad)" stroke="#a08854" stroke-width="2"/>
+      <ellipse cx="500" cy="2720" rx="40" ry="18" fill="url(#bunkerGrad)" stroke="#a08854" stroke-width="2"/>
+
+      <!-- Hole + Flag -->
+      <circle cx="500" cy="2780" r="6" fill="#0a2f1d"/>
+      <line x1="500" y1="2780" x2="500" y2="2680" stroke="white" stroke-width="2.5"/>
+      <path d="M 500 2680 L 540 2690 L 500 2700 Z" fill="#d63d3d"/>
+
+      <!-- Cart path (winding line) -->
+      <path d="M 280 140 C 270 400, 290 700, 270 1000 C 250 1300, 280 1600, 260 1900 C 240 2200, 270 2500, 290 2780"
+            stroke="rgba(232, 220, 178, 0.4)" stroke-width="3" stroke-dasharray="6 8" fill="none"/>
+
+      <!-- Yardage markers on fairway -->
+      <text x="430" y="800"  text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="14" font-weight="700">300</text>
+      <text x="430" y="1500" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="14" font-weight="700">200</text>
+      <text x="430" y="2200" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="14" font-weight="700">100</text>
+
+      <!-- Subtle grass texture overlay -->
+      <rect width="800" height="3000" fill="url(#grass)"/>
+    </svg>
+  </div>
+
+  <!-- The animated golf ball that travels down the fairway as you scroll -->
+  <div id="flyover-ball" class="flyover-ball" aria-hidden="true"></div>
+
+  <!-- ============================================================
+       SHOT 1 · TEE BOX — Hero with Round Readiness Score
+       ============================================================ -->
+  <section id="tee" class="shot tee-box">
+    <div class="shot-inner">
+      <div class="tee-grid">
+        <div>
+          <span class="shot-eyebrow"><span class="pin">1</span> Tee box · 472 yds, par 4</span>
+          <h2 class="display">Should you<br>play <span class="accent">today?</span></h2>
+          <p class="deck">Every golf app shows you the weather. We answer the actual question: is today the day, or should you reschedule? One number — your <strong>Round Readiness Score</strong> — built from live wind, precipitation, daylight, and course-condition risk.</p>
+          <div style="display:flex;gap:0.75rem;margin-top:1.5rem;flex-wrap:wrap">
+            <a href="#fairway" class="btn">Walk the hole ↓</a>
+            <a href="members.html" class="btn btn-secondary">Get Pro · $1.99/mo</a>
+          </div>
+        </div>
+
+        <!-- THE READINESS SCORE -->
+        <div class="score-card">
+          <div class="score-head">
+            <div>
+              <div class="label">Round Readiness</div>
+              <div class="h">Live for <span id="score-place">your area</span></div>
+            </div>
+            <span class="live">Live</span>
+          </div>
+
+          <div class="score-ring-wrap">
+            <div class="score-ring" id="score-ring">
+              <svg viewBox="0 0 200 200">
+                <circle class="track" cx="100" cy="100" r="80"/>
+                <circle class="fill"  cx="100" cy="100" r="80"/>
+              </svg>
+              <div class="num"><strong id="score-num">—</strong><small>out of 100</small></div>
+            </div>
+            <div class="score-detail" id="score-rows">
+              <div class="score-row">
+                <span class="row-label">Loading…</span>
+                <span class="bar"><span></span></span>
+                <span class="pts">— /25</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="score-summary" id="score-verdict"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SHOT 2 · FAIRWAY — Weather details
+       ============================================================ -->
+  <section id="fairway" class="shot fairway dark">
+    <div class="shot-inner">
+      <span class="shot-eyebrow"><span class="pin">2</span> Fairway · 200 yds out</span>
+      <h2 class="display">The wind. The rain.<br>The <span class="accent">90 minutes</span> before you tee off.</h2>
+      <p class="deck">Forecasts aren't the same as <em>golf-ready</em> forecasts. Wind direction matters more than speed. Dew slows your fairway. UV burns when you forget the brim. Here's what's coming today, with what to do about each.</p>
+
+      <div class="weather-tiles" id="fairway-tiles" style="margin-top:2rem">
+        <div class="weather-tile"><div class="t-label">Loading…</div><div class="t-value">—</div></div>
+        <div class="weather-tile"><div class="t-label">Loading…</div><div class="t-value">—</div></div>
+        <div class="weather-tile"><div class="t-label">Loading…</div><div class="t-value">—</div></div>
+        <div class="weather-tile"><div class="t-label">Loading…</div><div class="t-value">—</div></div>
+      </div>
+
+      <div style="margin-top:2rem">
+        <a href="weather.html" class="btn btn-secondary">Full 5-day forecast →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SHOT 3 · APPROACH — Courses near you
+       ============================================================ -->
+  <section id="approach" class="shot approach dark">
+    <div class="shot-inner">
+      <span class="shot-eyebrow"><span class="pin">3</span> Approach · 100 yds out</span>
+      <h2 class="display">Where are you<br><span class="accent">playing</span> next?</h2>
+      <p class="deck">GPS course finder pulls every public course within 25 miles. Get directions, scorecards, and live tee-time inventory from GolfNow and GolfPass — no hopping between three apps to plan a round.</p>
+
+      <div class="approach-card" style="margin-top:2rem">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem">
+          <div>
+            <div style="font-size:2.4rem;font-weight:900;font-family:var(--font-display);line-height:1">~25 mi</div>
+            <div style="font-size:0.85rem;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.1em;font-weight:700">Search radius</div>
+          </div>
+          <div>
+            <div style="font-size:2.4rem;font-weight:900;font-family:var(--font-display);line-height:1">3</div>
+            <div style="font-size:0.85rem;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.1em;font-weight:700">Booking partners</div>
+          </div>
+          <div>
+            <div style="font-size:2.4rem;font-weight:900;font-family:var(--font-display);line-height:1">$0</div>
+            <div style="font-size:0.85rem;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.1em;font-weight:700">Cost to use</div>
+          </div>
+        </div>
+        <div style="margin-top:1.5rem">
+          <a href="courses.html" class="btn">Find a course near me →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SHOT 4 · GREEN — Pre-round prep / checklist / etiquette
+       ============================================================ -->
+  <section id="green" class="shot green-shot">
+    <div class="shot-inner">
+      <span class="shot-eyebrow"><span class="pin">4</span> Green · 30 yds out</span>
+      <h2 class="display">The 24 hours<br>before <span class="accent">first tee.</span></h2>
+      <p class="deck">Don't show up at your tee time — show up <em>30 minutes early</em>, with your bag packed, your warm-up dialed, and the etiquette in your back pocket. Three checklists, three guides, zero rushing.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-top:2rem">
+        <a href="checklist.html" style="text-decoration:none;color:inherit">
+          <div style="background:var(--green-50);border-left:4px solid var(--green-700);padding:1.25rem;border-radius:12px;height:100%">
+            <div style="font-size:1.6rem">📋</div>
+            <h3 style="margin:0.5rem 0 0.25rem">Pre-round checklist</h3>
+            <p class="muted" style="font-size:0.9rem;margin:0">2 days before · night before · morning of</p>
+          </div>
+        </a>
+        <a href="etiquette.html" style="text-decoration:none;color:inherit">
+          <div style="background:var(--green-50);border-left:4px solid var(--green-700);padding:1.25rem;border-radius:12px;height:100%">
+            <div style="font-size:1.6rem">🤝</div>
+            <h3 style="margin:0.5rem 0 0.25rem">Etiquette &amp; pace</h3>
+            <p class="muted" style="font-size:0.9rem;margin:0">Dress code, ready golf, tipping, the 10 things golfers notice</p>
+          </div>
+        </a>
+        <a href="equipment.html" style="text-decoration:none;color:inherit">
+          <div style="background:var(--green-50);border-left:4px solid var(--green-700);padding:1.25rem;border-radius:12px;height:100%">
+            <div style="font-size:1.6rem">🏌️</div>
+            <h3 style="margin:0.5rem 0 0.25rem">Equipment</h3>
+            <p class="muted" style="font-size:0.9rem;margin:0">14-club rule, ball selection, gloves, full pack list</p>
+          </div>
+        </a>
+        <a href="tips.html" style="text-decoration:none;color:inherit">
+          <div style="background:var(--green-50);border-left:4px solid var(--green-700);padding:1.25rem;border-radius:12px;height:100%">
+            <div style="font-size:1.6rem">🎯</div>
+            <h3 style="margin:0.5rem 0 0.25rem">Warm-up &amp; tips</h3>
+            <p class="muted" style="font-size:0.9rem;margin:0">10-min stretch, smart range sequence, course management</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SHOT 5 · PIN — Final shot, membership/CTA
+       ============================================================ -->
+  <section id="pin" class="shot pin-shot">
+    <div class="shot-inner" style="max-width:800px">
+      <div class="pin-card">
+        <span class="shot-eyebrow"><span class="pin">⛳</span> The pin · 6 ft</span>
+        <h2 class="display" style="margin-top:0.75rem">Make it<br>a <span class="accent">ritual.</span></h2>
+        <p class="deck" style="margin:0 auto;color:rgba(255,255,255,0.85)">Free forever covers everything you just walked through. Pro adds live GPS yardages, scorecard sync, stat tracking, and live competitions with your group — for less than a sleeve of balls a year.</p>
+
+        <div class="price-big" style="margin-top:2rem">$1.99<small style="font-size:1.5rem;font-weight:600">/mo</small></div>
+        <div class="price-sub">or $14.99/yr — save 35%</div>
+
+        <div class="features-row">
+          <span>Live GPS yardages</span>
+          <span>Scorecard sync</span>
+          <span>Stat tracking</span>
+          <span>Handicap</span>
+          <span>Live competitions</span>
+          <span>No ads. Ever.</span>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;position:relative;z-index:2">
+          <a href="members.html" class="btn" style="background:white;color:var(--green-900)">Join the launch list</a>
+          <a href="scorecard.html" class="btn btn-secondary" style="background:transparent;color:white;border:1px solid rgba(255,255,255,0.4)">Try the scorecard</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="brand" style="color:white"><span class="brand-mark">B4U</span><span>b4u.golf</span></div>
+        <p style="color:rgba(255,255,255,0.7);margin-top:0.75rem">Everything you need <em>before</em> you tee off — built for golfers, by golfers.</p>
+      </div>
+      <div><h4>Before the round</h4><ul><li><a href="weather.html">Weather</a></li><li><a href="courses.html">Courses</a></li><li><a href="checklist.html">Checklist</a></li><li><a href="equipment.html">Equipment</a></li></ul></div>
+      <div><h4>On the course</h4><ul><li><a href="etiquette.html">Etiquette</a></li><li><a href="tips.html">Tips</a></li><li><a href="scorecard.html">Scorecard</a></li></ul></div>
+      <div><h4>Account</h4><ul><li><a href="members.html">Membership</a></li><li><a href="about.html">About</a></li><li><a href="about.html#contact">Contact</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span data-year>2026</span> b4u.golf — also at b4ugolf.com</span>
+      <span>Built for the love of the game.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
