@@ -39,14 +39,18 @@
 
 <section class="section-tight">
   <div class="container">
-    <form id="cf-form" class="field" style="max-width:520px">
-      <input id="cf-input" type="text" placeholder="City, ZIP, or course name" />
-      <button type="submit" class="btn">Search</button>
-    </form>
     <p id="cf-place" class="muted" style="font-size:0.95rem"></p>
     <div id="course-finder">
-      <p class="muted">📍 Loading nearby courses… (allow location access for the fastest results.)</p>
+      <p class="muted">📍 Detecting your location to find courses near you…</p>
     </div>
+
+    <details id="cf-search-details" style="margin-top:1.5rem">
+      <summary style="cursor:pointer;color:var(--green-700);font-weight:600;font-size:0.95rem">📍 Search a different city or ZIP instead</summary>
+      <form id="cf-form" class="field" style="max-width:520px;margin-top:0.75rem">
+        <input id="cf-input" type="text" placeholder="City, ZIP, or course name" />
+        <button type="submit" class="btn">Search</button>
+      </form>
+    </details>
   </div>
 </section>
 
