@@ -1,6 +1,6 @@
 /* Simple offline-capable service worker for b4u.golf */
 /* Bump this version any time you change site files — forces all clients to re-fetch. */
-const CACHE = 'b4u-golf-v7-2026-04-26';
+const CACHE = 'b4u-golf-v8-2026-04-26-wordmark';
 const ASSETS = [
   '/',
   '/index.html',
