@@ -779,7 +779,7 @@ async function renderHomeCourses(lat, lon, place) {
   if (!list) return;
 
   if (placeBox && place) {
-    placeBox.innerHTML = `📍 <strong>Showing courses near ${place}</strong> — closest five within 25 miles.`;
+    placeBox.textContent = place;
   }
 
   const query = `[out:json][timeout:20];
@@ -818,17 +818,15 @@ async function renderHomeCourses(lat, lon, place) {
 
     list.innerHTML = items.map(c => {
       const teeGolfNow = buildTeeTimeUrl(c.name, place);
-      const maps    = `https://www.google.com/maps/search/${encodeURIComponent(c.name)}/@${c.lat},${c.lon},15z`;
-      const drive   = `https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lon}`;
-      return `<div style="background:rgba(255,255,255,0.95);border-radius:14px;padding:1rem 1.1rem;margin-bottom:0.6rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem 1rem">
-        <div>
-          <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;color:var(--green-900);margin-bottom:0.1rem">${c.name}</div>
-          <div style="font-size:0.85rem;color:var(--gray-500)">${c.dist.toFixed(1)} mi · ${(c.tags.access || 'public').replace(/^./, x => x.toUpperCase())}</div>
+      const maps = `https://www.google.com/maps/search/${encodeURIComponent(c.name)}/@${c.lat},${c.lon},15z`;
+      return `<div class="ci-row">
+        <div style="flex:1;min-width:0">
+          <div class="ci-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name}</div>
+          <div class="ci-dist">${c.dist.toFixed(1)} mi · ${(c.tags.access || 'public').replace(/^./, x => x.toUpperCase())}</div>
         </div>
-        <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
-          <a href="${teeGolfNow}" target="_blank" rel="noopener" style="background:var(--green-700);color:white;padding:0.4rem 0.8rem;border-radius:999px;font-size:0.82rem;font-weight:600;text-decoration:none">🕐 Tee times</a>
-          <a href="${maps}" target="_blank" rel="noopener" style="background:var(--green-50);color:var(--green-700);padding:0.4rem 0.8rem;border-radius:999px;font-size:0.82rem;font-weight:600;text-decoration:none">📍 Map</a>
-          <a href="${drive}" target="_blank" rel="noopener" style="background:var(--green-50);color:var(--green-700);padding:0.4rem 0.8rem;border-radius:999px;font-size:0.82rem;font-weight:600;text-decoration:none">🚗 Go</a>
+        <div class="ci-actions">
+          <a href="${teeGolfNow}" target="_blank" rel="noopener" class="ci-tee">Tee times</a>
+          <a href="${maps}" target="_blank" rel="noopener" class="ci-map">Map</a>
         </div>
       </div>`;
     }).join('');
