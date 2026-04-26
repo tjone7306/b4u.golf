@@ -1,5 +1,6 @@
 /* Simple offline-capable service worker for b4u.golf */
-const CACHE = 'b4u-golf-v1';
+/* Bump this version any time you change site files — forces all clients to re-fetch. */
+const CACHE = 'b4u-golf-v3-2026-04-26';
 const ASSETS = [
   '/',
   '/index.html',
@@ -20,6 +21,11 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
   self.skipWaiting();
+});
+
+// Receive activation request from page when a new version is ready
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
