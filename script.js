@@ -94,7 +94,7 @@ async function fetchForecast(lat, lon) {
     wind_speed_unit: 'mph',
     precipitation_unit: 'inch',
     timezone: 'auto',
-    forecast_days: 2
+    forecast_days: 7
   });
   const r = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
   if (!r.ok) throw new Error('Weather fetch failed');
@@ -489,7 +489,7 @@ function renderWeatherDetail(box, data, place) {
 
     <div class="card">
       <h3 style="margin-bottom:0.5rem">5-day outlook</h3>
-      ${d.time.map((t, i) => {
+      ${d.time.slice(0, 5).map((t, i) => {
         const [lab, ic] = wxLabel(d.weather_code[i]);
         return `<div class="forecast-day">
           <div class="day-name">${i === 0 ? 'Today' : dayName(t)}</div>
