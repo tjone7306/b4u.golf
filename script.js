@@ -325,23 +325,6 @@ function buildTeeTimeUrl(courseName, place) {
   return `https://www.golfnow.com/tee-times/search?searchTerm=${encodeURIComponent(courseName)}`;
 }
 
-/* ----------------------------------------------------------------------
-   GOLFPASS DEEP-LINK BUILDER
-   GolfPass is NBC Sports' golf membership ($9.99/mo or $99/yr). Members
-   get up to 30% off tee times at GolfNow-network courses + $10/mo credit
-   + Golf Channel content. Sister brand to GolfNow. Booking flows through
-   the same back-end, but GolfPass URLs surface member pricing.
-
-   AFFILIATE TODO: GolfPass affiliate is run via Impact (impact.com).
-   Once Tim is approved, retrofit this to include irgwc / clickid /
-   utm params per their welcome email.
-   ---------------------------------------------------------------------- */
-function buildGolfPassUrl(courseName) {
-  // GolfPass tee-time search URL — falls through to GolfNow inventory but
-  // applies any active GolfPass member pricing on landing.
-  return `https://www.golfpass.com/travel/tee-times/search?q=${encodeURIComponent(courseName || '')}`;
-}
-const GOLFPASS_SIGNUP_URL = 'https://www.golfpass.com/membership';
 
 const WX_CODES = {
   0:  ['Clear', '☀️'],
@@ -834,7 +817,7 @@ async function renderHomeCourses(lat, lon, place) {
       return;
     }
 
-    const rowsHtml = items.map(c => {
+    list.innerHTML = items.map(c => {
       const teeGolfNow = buildTeeTimeUrl(c.name, place);
       const maps = `https://www.google.com/maps/search/${encodeURIComponent(c.name)}/@${c.lat},${c.lon},15z`;
       return `<div class="ci-row">
@@ -848,13 +831,6 @@ async function renderHomeCourses(lat, lon, place) {
         </div>
       </div>`;
     }).join('');
-    // Honest, low-key partner tip — GolfPass discounts apply at GolfNow-network courses
-    const tipHtml = `<div class="ci-tip">
-      <span class="ci-tip-label">💡 Play 10+ rounds a year?</span>
-      <a href="${GOLFPASS_SIGNUP_URL}" target="_blank" rel="noopener">GolfPass</a>
-      members save up to 30% on these tee times ($9.99/mo · 7-day free trial).
-    </div>`;
-    list.innerHTML = rowsHtml + tipHtml;
   } catch {
     list.innerHTML = `<p class="muted" style="color:rgba(255,255,255,0.7)">Live course list unavailable. <a href="courses.html" style="color:white;font-weight:700">Use the full course finder →</a></p>`;
   }
