@@ -1016,6 +1016,30 @@ table.gtable tr:hover td { background: var(--green-50); }
   background: var(--green-50);
   color: var(--green-700);
 }
+.ci-tip {
+  margin-top: 0.85rem;
+  padding: 0.65rem 0.85rem;
+  background: linear-gradient(135deg, rgba(245, 185, 65, 0.10), rgba(108, 187, 116, 0.10));
+  border: 1px solid rgba(15, 53, 34, 0.10);
+  border-radius: 12px;
+  font-size: 0.78rem;
+  color: var(--gray-700);
+  line-height: 1.4;
+}
+.ci-tip .ci-tip-label {
+  font-weight: 700;
+  color: var(--green-900);
+}
+.ci-tip a {
+  color: var(--green-700);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--green-500);
+}
+.ci-tip a:hover {
+  color: var(--green-900);
+  border-bottom-color: var(--green-700);
+}
 
 /* Vertical hole-yardage tick marks running down the right side */
 .yardage-track {
