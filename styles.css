@@ -47,6 +47,7 @@
 html, body {
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
   font-family: var(--font-sans);
   color: var(--charcoal);
   background: var(--cream);
@@ -388,11 +389,38 @@ table.gtable tr:hover td { background: var(--green-50); }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .course-item { grid-template-columns: 1fr; }
   .forecast-day { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+  /* Tighter shot section padding so hero doesn't feel cramped horizontally */
+  .shot { padding: 3.25rem 0; }
+  .shot-inner { padding: 0 1.5rem; }
+  .shot h2.display { font-size: clamp(2rem, 9vw, 3rem); }
+  .shot p.deck { font-size: 1.05rem; }
+  .tee-box { padding-top: 4rem; padding-bottom: 5rem; }
+
+  /* Calm down the aerial-view background on mobile so SVG tee markers,
+     bunkers, and trees don't bleed into the foreground text. */
+  .flyover-bg svg { opacity: 0.35; }
+
+  /* Course list card needs less internal padding on small screens */
+  .home-courses-inline,
+  .best-time-card { padding: 1rem 1rem; }
+  .home-courses-inline .ci-row { gap: 0.4rem; padding: 0.55rem 0; }
+  .home-courses-inline .ci-row .ci-actions { gap: 0.25rem; }
+  .home-courses-inline .ci-row .ci-actions a {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.7rem;
+  }
 }
 @media (max-width: 480px) {
+  /* Wider gutters on small phones so the brand mark and content
+     don't hug the edge of the screen. */
+  .container { padding: 0 1.5rem; }
   .footer-grid { grid-template-columns: 1fr; }
   .wx-row { grid-template-columns: 1fr 1fr; }
   .section { padding: 2.5rem 0; }
+  /* Header brand size — keep readable but not crowding the hamburger */
+  .brand { font-size: 1.35rem; }
+  .nav { padding: 0.7rem 0; }
 }
 
 /* =========================================================================
