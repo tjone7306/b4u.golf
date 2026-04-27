@@ -359,6 +359,29 @@ table.gtable tr:hover td { background: var(--green-50); }
   outline: none; border-color: var(--green-500);
   box-shadow: 0 0 0 3px rgba(127, 176, 105, 0.25);
 }
+.form-row {
+  display: flex; flex-direction: column; gap: 0.4rem;
+  margin: 1.1rem 0;
+}
+.form-row label {
+  font-weight: 700; color: var(--green-900);
+  font-size: 0.95rem;
+}
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--gray-300);
+  font-size: 1rem;
+  font-family: inherit;
+  background: white;
+  color: var(--charcoal);
+}
+.form-row textarea { resize: vertical; min-height: 80px; line-height: 1.4; }
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+  outline: none; border-color: var(--green-500);
+  box-shadow: 0 0 0 3px rgba(127, 176, 105, 0.25);
+}
 
 /* ---------- Utility ---------- */
 .center { text-align: center; }
